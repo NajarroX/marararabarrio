@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MARARARA: MI BARRIO EDITION</title>
     <!-- Google Font Pixel Art -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,20 +31,26 @@
         body, html {
             width: 100%;
             height: 100%;
+            height: 100dvh;
             overflow: hidden;
             background-color: var(--bg-dark);
             font-family: var(--ui-font);
             color: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
 
         #game-container {
             position: relative;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             display: flex;
             justify-content: center;
             align-items: center;
             background: #000;
+            overflow: hidden;
         }
 
         canvas {
@@ -57,6 +63,34 @@
             image-rendering: -o-crisp-edges;
             image-rendering: pixelated;
             -ms-interpolation-mode: nearest-neighbor;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Botón de Pantalla Completa Móvil */
+        #btn-fullscreen {
+            position: absolute;
+            top: max(10px, env(safe-area-inset-top));
+            left: max(10px, env(safe-area-inset-left));
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            font-family: var(--ui-font);
+            font-size: 0.6rem;
+            padding: 8px 12px;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            border-radius: 4px;
+        }
+
+        #btn-fullscreen:active {
+            background: var(--neon-cyan);
+            color: #000;
         }
 
         .screen {
@@ -71,12 +105,13 @@
             align-items: center;
             background: rgba(5, 5, 12, 0.94);
             z-index: 10;
+            padding: 20px;
         }
 
         .hidden { display: none !important; }
 
         h1 {
-            font-size: clamp(1.2rem, 3.5vw, 2.5rem);
+            font-size: clamp(1.1rem, 3.5vw, 2.5rem);
             color: var(--neon-green);
             text-shadow: 3px 3px 0px var(--neon-pink), 0 0 15px var(--neon-green);
             margin-bottom: 25px;
@@ -93,22 +128,23 @@
         }
 
         h2 {
-            font-size: 1rem;
+            font-size: clamp(0.7rem, 2vw, 1rem);
             color: var(--neon-cyan);
             text-shadow: 2px 2px 0px #000, 0 0 8px var(--neon-cyan);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             line-height: 1.4;
+            text-align: center;
         }
 
         .btn {
             background: #000;
             border: 3px solid var(--neon-green);
             color: var(--neon-green);
-            padding: 14px 20px;
-            font-size: 0.8rem;
+            padding: 12px 18px;
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             font-family: var(--ui-font);
             cursor: pointer;
-            margin: 10px;
+            margin: 8px;
             text-shadow: 0 0 5px var(--neon-green);
             box-shadow: 4px 4px 0px var(--neon-pink);
             transition: all 0.1s ease;
@@ -137,14 +173,16 @@
         .char-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-            max-width: 90%;
+            gap: 10px;
+            margin-bottom: 15px;
+            max-width: 95%;
+            max-height: 50vh;
+            overflow-y: auto;
         }
 
         .char-card {
             border: 2px solid #444;
-            padding: 12px;
+            padding: 8px;
             text-align: center;
             cursor: pointer;
             background: rgba(255,255,255,0.03);
@@ -158,14 +196,14 @@
         }
 
         .char-avatar {
-            width: 50px;
-            height: 50px;
-            margin: 0 auto 10px;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 6px;
             border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             border: 2px solid #fff;
         }
 
@@ -173,29 +211,32 @@
             background: #000;
             border: 2px solid var(--neon-cyan);
             color: #fff;
-            padding: 10px;
+            padding: 8px;
             font-family: var(--ui-font);
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             outline: none;
             box-shadow: 3px 3px 0px var(--neon-pink);
         }
 
         .modal {
             position: absolute;
-            width: 85%;
+            width: 90%;
             max-width: 550px;
+            max-height: 85vh;
+            overflow-y: auto;
             background: #0d0d1a;
             border: 3px solid var(--neon-pink);
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 0 25px var(--neon-pink);
             z-index: 20;
             text-align: left;
-            font-size: 0.65rem;
+            font-size: clamp(0.5rem, 1.5vw, 0.65rem);
             line-height: 1.8;
         }
 
+        /* AJUSTES RESPONSIVOS DE CONTROLES TÁCTILES */
         #touch-controls {
             position: absolute;
             top: 0;
@@ -203,7 +244,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 5;
+            z-index: 15;
             display: none;
         }
 
@@ -213,43 +254,46 @@
         }
 
         #dpad-zone {
-            bottom: 20px;
-            left: 20px;
-            width: 140px;
-            height: 140px;
+            bottom: max(15px, env(safe-area-inset-bottom));
+            left: max(15px, env(safe-area-inset-left));
+            width: clamp(100px, 22vw, 130px);
+            height: clamp(100px, 22vw, 130px);
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(0, 255, 102, 0.3);
             border-radius: 50%;
+            touch-action: none;
         }
 
         #joystick-stick {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 40%;
+            height: 40%;
             background: var(--neon-green);
             border-radius: 50%;
-            top: 45px;
-            left: 45px;
+            top: 30%;
+            left: 30%;
             opacity: 0.6;
             box-shadow: 0 0 10px var(--neon-green);
+            pointer-events: none;
         }
 
         #action-zone {
-            bottom: 20px;
-            right: 20px;
+            bottom: max(15px, env(safe-area-inset-bottom));
+            right: max(15px, env(safe-area-inset-right));
             display: grid;
-            grid-template-columns: repeat(3, 55px);
-            gap: 10px;
+            grid-template-columns: repeat(3, clamp(40px, 10vw, 52px));
+            gap: 8px;
+            touch-action: none;
         }
 
         .touch-btn {
-            width: 55px;
-            height: 55px;
+            width: clamp(40px, 10vw, 52px);
+            height: clamp(40px, 10vw, 52px);
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
             border: 2px solid var(--neon-cyan);
             color: var(--neon-cyan);
-            font-size: 0.5rem;
+            font-size: clamp(0.38rem, 1vw, 0.5rem);
             font-family: var(--ui-font);
             display: flex;
             align-items: center;
@@ -268,6 +312,8 @@
 <body>
 
 <div id="game-container">
+    <button id="btn-fullscreen" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
+
     <canvas id="gameCanvas"></canvas>
 
     <div id="touch-controls">
@@ -298,8 +344,8 @@
 
     <div id="screen-gameover" class="screen hidden">
         <h1 style="color:var(--neon-pink);">GAME OVER</h1>
-        <p style="font-size: 0.8rem; margin-bottom: 20px; line-height: 1.6;">SCORE FINAL: <span id="final-score" style="color:var(--neon-yellow)">0</span></p>
-        <p style="font-size: 0.8rem; margin-bottom: 30px; line-height: 1.6;">BLOQUES SURVIVED: <span id="final-stage" style="color:var(--neon-cyan)">1</span></p>
+        <p style="font-size: 0.7rem; margin-bottom: 15px; line-height: 1.6;">SCORE FINAL: <span id="final-score" style="color:var(--neon-yellow)">0</span></p>
+        <p style="font-size: 0.7rem; margin-bottom: 25px; line-height: 1.6;">BLOQUES SURVIVED: <span id="final-stage" style="color:var(--neon-cyan)">1</span></p>
         <button class="btn" onclick="resetToMenu()">MENU PRINCIPAL</button>
     </div>
 
@@ -358,7 +404,25 @@ function resizeCanvas() {
     canvas.style.height = (CANVAS_HEIGHT * scale) + "px";
 }
 window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
 resizeCanvas();
+
+function toggleFullScreen() {
+    const container = document.getElementById('game-container');
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (container.requestFullscreen) {
+            container.requestFullscreen();
+        } else if (container.webkitRequestFullscreen) {
+            container.webkitRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    }
+}
 
 /* ==========================================================================
    BASES DE DATOS DE PERSONAJES Y ENEMIGOS CON SPRITESHEETS INDIVIDUALES
@@ -436,7 +500,7 @@ let targetCameraX = 0;
 let cameraShakeTime = 0;
 let cameraShakeIntensity = 0;
 
-let glitchTime = 0; // Temporizador para efecto Glitch Neón de R1
+let glitchTime = 0;
 
 let player = null;
 let enemies = [];
@@ -481,8 +545,8 @@ dpadZone.addEventListener('touchmove', e => {
 
 const resetJoystick = () => {
     touchId = null;
-    joystickStick.style.top = '45px';
-    joystickStick.style.left = '45px';
+    joystickStick.style.top = '30%';
+    joystickStick.style.left = '30%';
     touchInput.x = 0; touchInput.y = 0;
 };
 dpadZone.addEventListener('touchend', resetJoystick);
@@ -502,8 +566,11 @@ function updateJoystick(touch) {
         dy = (dy / dist) * maxDist;
     }
 
-    joystickStick.style.left = (45 + dx) + 'px';
-    joystickStick.style.top = (45 + dy) + 'px';
+    const percentX = (dx / maxDist) * 30 + 30;
+    const percentY = (dy / maxDist) * 30 + 30;
+
+    joystickStick.style.left = percentX + '%';
+    joystickStick.style.top = percentY + '%';
     touchInput.x = dx / maxDist;
     touchInput.y = dy / maxDist;
 }
@@ -822,16 +889,13 @@ class PlayerEntity extends Entity {
             this.hitbox = { offsetX: 15, w: 75, h: 50, damage: 160, type: 'ONE_HIT' };
             triggerCameraShake(10, 12);
         } else if (type === 'BOMB') {
-            // MOVIMIENTO ESPECIAL BOMBA NEÓN / GANCHO HOOK
             this.stamina -= 75;
             this.attackTimer = 35;
-            this.currentAttackType = 'HOOK'; // HABILITADA ANIMACIÓN DE GANCHO
+            this.currentAttackType = 'HOOK';
 
-            // Efectos de Glitch y Shaking
             triggerGlitch(18);
             triggerCameraShake(18, 20);
 
-            // Onda expansiva visual
             shockwaves.push({
                 x: this.x,
                 y: this.y - 20,
@@ -1061,7 +1125,6 @@ function updateGame() {
 
     resolvePhysicalCollisions();
 
-    // Detección Jugador -> Enemigos
     if (player.isAttacking && player.hitbox) {
         enemies.forEach(enemy => {
             if (!enemy.isKnockedDown && enemy.hurtTimer <= 0 && checkHitboxCollision(player, player.hitbox, enemy.Hurtbox)) {
@@ -1092,7 +1155,6 @@ function updateGame() {
         });
     }
 
-    // Detección Enemigos -> Jugador
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
         enemy.update();
@@ -1108,7 +1170,6 @@ function updateGame() {
 
     if (enemies.length === 0) spawnWave();
 
-    // Actualizar ondas de expansión
     shockwaves.forEach((sw, idx) => {
         sw.radius += (sw.maxRadius - sw.radius) * 0.2;
         sw.life--;
@@ -1172,7 +1233,6 @@ function renderGame() {
 
     drawImprovedStage();
 
-    // Renderizar ondas de choque
     shockwaves.forEach(sw => {
         ctx.save();
         ctx.beginPath();
@@ -1207,7 +1267,6 @@ function renderGame() {
 
     ctx.restore();
 
-    // Efecto de Glitch RGB / Distorsión en pantalla
     applyGlitchEffect();
 
     drawGameHUD();
@@ -1333,8 +1392,8 @@ function setupCharGrid() {
         card.onclick = () => { selectedCharIndex = index; setupCharGrid(); };
         card.innerHTML = `
             <div class="char-avatar" style="background:${char.shirtColor}; color:#000;">${char.name[0]}</div>
-            <div style="font-size:0.6rem; font-weight:bold; color:#fff">${char.name}</div>
-            <div style="font-size:0.45rem; margin-top:8px; color:var(--neon-cyan)">SPD:${char.speed} PWR:${char.power}</div>
+            <div style="font-size:0.55rem; font-weight:bold; color:#fff">${char.name}</div>
+            <div style="font-size:0.4rem; margin-top:6px; color:var(--neon-cyan)">SPD:${char.speed} PWR:${char.power}</div>
         `;
         grid.appendChild(card);
     });
