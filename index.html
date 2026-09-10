@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MARARARA: MI BARRIO EDITION</title>
+    <!-- Google Font Pixel Art -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --neon-green: #00ff66;
+            --neon-pink: #ff007f;
+            --neon-cyan: #00f3ff;
+            --neon-yellow: #ffee00;
+            --bg-dark: #05050a;
+            --ui-font: 'Press Start 2P', cursive;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: var(--ui-font);
+            color: #fff;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
+
+        canvas {
+            display: block;
+            background: #000;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.25);
+            image-rendering: optimizeSpeed;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: -o-crisp-edges;
+            image-rendering: pixelated;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(5, 5, 12, 0.94);
+            z-index: 10;
+        }
+
+        .hidden { display: none !important; }
+
+        h1 {
+            font-size: clamp(1.2rem, 3.5vw, 2.5rem);
+            color: var(--neon-green);
+            text-shadow: 3px 3px 0px var(--neon-pink), 0 0 15px var(--neon-green);
+            margin-bottom: 25px;
+            text-align: center;
+            line-height: 1.4;
+            letter-spacing: 1px;
+            animation: glitchText 1.5s infinite alternate;
+        }
+
+        @keyframes glitchText {
+            0% { text-shadow: 3px 3px 0px var(--neon-pink), -2px -2px 0px var(--neon-cyan); }
+            50% { text-shadow: -3px 2px 0px var(--neon-yellow), 2px -2px 0px var(--neon-pink); }
+            100% { text-shadow: 3px -3px 0px var(--neon-cyan), -3px 3px 0px var(--neon-green); }
+        }
+
+        h2 {
+            font-size: 1rem;
+            color: var(--neon-cyan);
+            text-shadow: 2px 2px 0px #000, 0 0 8px var(--neon-cyan);
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .btn {
+            background: #000;
+            border: 3px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 14px 20px;
+            font-size: 0.8rem;
+            font-family: var(--ui-font);
+            cursor: pointer;
+            margin: 10px;
+            text-shadow: 0 0 5px var(--neon-green);
+            box-shadow: 4px 4px 0px var(--neon-pink);
+            transition: all 0.1s ease;
+        }
+
+        .btn:hover, .btn:active {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 2px 2px 0px var(--neon-pink);
+            transform: translate(2px, 2px);
+        }
+
+        .btn-pink {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            text-shadow: 0 0 5px var(--neon-pink);
+            box-shadow: 4px 4px 0px var(--neon-cyan);
+        }
+
+        .btn-pink:hover, .btn-pink:active {
+            background: var(--neon-pink);
+            color: #000;
+            box-shadow: 2px 2px 0px var(--neon-cyan);
+        }
+
+        .char-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+            max-width: 90%;
+        }
+
+        .char-card {
+            border: 2px solid #444;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(255,255,255,0.03);
+            transition: all 0.1s;
+        }
+
+        .char-card.selected {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px var(--neon-cyan), inset 0 0 10px var(--neon-cyan);
+            background: rgba(0, 243, 255, 0.15);
+        }
+
+        .char-avatar {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 10px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border: 2px solid #fff;
+        }
+
+        input[type="text"] {
+            background: #000;
+            border: 2px solid var(--neon-cyan);
+            color: #fff;
+            padding: 10px;
+            font-family: var(--ui-font);
+            font-size: 0.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+            box-shadow: 3px 3px 0px var(--neon-pink);
+        }
+
+        .modal {
+            position: absolute;
+            width: 85%;
+            max-width: 550px;
+            background: #0d0d1a;
+            border: 3px solid var(--neon-pink);
+            padding: 20px;
+            box-shadow: 0 0 25px var(--neon-pink);
+            z-index: 20;
+            text-align: left;
+            font-size: 0.65rem;
+            line-height: 1.8;
+        }
+
+        #touch-controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+        }
+
+        .touch-zone {
+            position: absolute;
+            pointer-events: auto;
+        }
+
+        #dpad-zone {
+            bottom: 20px;
+            left: 20px;
+            width: 140px;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 102, 0.3);
+            border-radius: 50%;
+        }
+
+        #joystick-stick {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            top: 45px;
+            left: 45px;
+            opacity: 0.6;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        #action-zone {
+            bottom: 20px;
+            right: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 55px);
+            gap: 10px;
+        }
+
+        .touch-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            font-size: 0.5rem;
+            font-family: var(--ui-font);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
+            text-align: center;
+        }
+
+        .touch-btn:active { background: var(--neon-cyan); color: #000; }
+        .touch-btn.btn-spec { border-color: var(--neon-pink); color: var(--neon-pink); }
+        .touch-btn.btn-spec:active { background: var(--neon-pink); color: #000; }
+        .touch-btn.btn-bomb { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+        .touch-btn.btn-bomb:active { background: var(--neon-yellow); color: #000; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="touch-controls">
+        <div id="dpad-zone" class="touch-zone">
+            <div id="joystick-stick"></div>
+        </div>
+        <div id="action-zone" class="touch-zone">
+            <div class="touch-btn" id="t-btn-atk">ATK</div>
+            <div class="touch-btn" id="t-btn-jmp">JMP</div>
+            <div class="touch-btn btn-spec" id="t-btn-combo">COMBO</div>
+            <div class="touch-btn btn-spec" id="t-btn-spec">CRIT</div>
+            <div class="touch-btn btn-bomb" id="t-btn-bomb">BOMB</div>
+        </div>
+    </div>
+
+    <div id="screen-intro" class="screen">
+        <h1>MARARARA<br><span style="font-size:0.4em; color:var(--neon-pink);">MI BARRIO EDITION</span></h1>
+        <button class="btn" onclick="goToSelect()">PRESS START</button>
+        <button class="btn btn-pink" onclick="toggleModal(true)">GUIA / CONTROLES</button>
+    </div>
+
+    <div id="screen-select" class="screen hidden">
+        <h2>SELECCIONA TU PELEADOR</h2>
+        <input type="text" id="player-name-input" maxlength="10" placeholder="TU NOMBRE" value="ALEX">
+        <div class="char-grid" id="char-grid"></div>
+        <button class="btn" onclick="startGame()">¡A PELEAR!</button>
+    </div>
+
+    <div id="screen-gameover" class="screen hidden">
+        <h1 style="color:var(--neon-pink);">GAME OVER</h1>
+        <p style="font-size: 0.8rem; margin-bottom: 20px; line-height: 1.6;">SCORE FINAL: <span id="final-score" style="color:var(--neon-yellow)">0</span></p>
+        <p style="font-size: 0.8rem; margin-bottom: 30px; line-height: 1.6;">BLOQUES SURVIVED: <span id="final-stage" style="color:var(--neon-cyan)">1</span></p>
+        <button class="btn" onclick="resetToMenu()">MENU PRINCIPAL</button>
+    </div>
+
+    <div id="info-modal" class="modal hidden">
+        <h3 style="color:var(--neon-green); margin-bottom:15px; font-size:0.75rem;">MANDO / GAMEPAD CONTROLS</h3>
+        <p><b>Mover:</b> D-Pad / Stick Izquierdo</p>
+        <p><b>Golpe:</b> Botón A / ✖ (J)</p>
+        <p><b>Salto:</b> Botón B / 🔴 (K)</p>
+        <p><b>Combo Cadena:</b> Botón X / 🟦 (U)</p>
+        <p><b>Golpe Crítico:</b> Botón Y / 🔺 (I)</p>
+        <p><b>Bomba Neón (Hook KO):</b> R1 / RB (O)</p>
+        <br>
+        <button class="btn btn-pink" style="width:100%; margin:0;" onclick="toggleModal(false)">CERRAR</button>
+    </div>
+</div>
+
+<script>
+/* ==========================================================================
+   CONFIGURACIÓN Y CONSTANTES GLOBALES
+   ========================================================================== */
+const CANVAS_WIDTH = 960;
+const CANVAS_HEIGHT = 540;
+const STAGE_BOTTOM_Y = 510;
+const STAGE_TOP_Y = 310;
+
+const SPRITE_SIZE = 64;
+const SPRITE_COLS = 4;
+const SPRITE_ROWS = 13;
+
+const ANIM_ROWS = {
+    IDLE: 0,
+    WALK: 1,
+    RUN: 2,
+    JAB: 3,
+    STRAIGHT_PUNCH: 4,
+    HOOK: 5,
+    LOW_KICK: 6,
+    HIGH_KICK: 7,
+    JUMP_KICK: 8,
+    GRAB_THROW: 9,
+    GET_HIT: 10,
+    KNOCKBACK: 11,
+    DOWN: 12
+};
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = CANVAS_WIDTH;
+canvas.height = CANVAS_HEIGHT;
+ctx.imageSmoothingEnabled = false;
+
+function resizeCanvas() {
+    const container = document.getElementById('game-container');
+    const scale = Math.min(container.clientWidth / CANVAS_WIDTH, container.clientHeight / CANVAS_HEIGHT);
+    canvas.style.width = (CANVAS_WIDTH * scale) + "px";
+    canvas.style.height = (CANVAS_HEIGHT * scale) + "px";
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+/* ==========================================================================
+   BASES DE DATOS DE PERSONAJES Y ENEMIGOS CON SPRITESHEETS INDIVIDUALES
+   ========================================================================== */
+const CHARACTERS_DB = [
+    { 
+        id: 0, name: "ALEX", 
+        spriteSrc: 'assets/Spritesheet-beatemUp-player.png', 
+        shirtColor: "#ffffff", pantsColor: "#0078f8", speed: 4.8, power: 14, hp: 100 
+    },
+    { 
+        id: 1, name: "RYAN", 
+        spriteSrc: 'assets/Spritesheet-ryan.png', 
+        shirtColor: "#0078f8", pantsColor: "#ffffff", speed: 5.8, power: 11, hp: 90 
+    },
+    { 
+        id: 2, name: "KUNIO", 
+        spriteSrc: 'assets/Spritesheet-kunio.png', 
+        shirtColor: "#ffffff", pantsColor: "#111111", speed: 4.2, power: 18, hp: 120 
+    },
+    { 
+        id: 3, name: "RIKI", 
+        spriteSrc: 'assets/Spritesheet-riki.png', 
+        shirtColor: "#00f3ff", pantsColor: "#111111", speed: 6.2, power: 10, hp: 85 
+    },
+    { 
+        id: 4, name: "SHINJI", 
+        spriteSrc: 'assets/Spritesheet-shinji.png', 
+        shirtColor: "#ff007f", pantsColor: "#0078f8", speed: 5.2, power: 13, hp: 95 
+    },
+    { 
+        id: 5, name: "GOUDA", 
+        spriteSrc: 'assets/Spritesheet-gouda.png', 
+        shirtColor: "#ffee00", pantsColor: "#ff0055", speed: 3.8, power: 22, hp: 140 
+    }
+];
+
+const ENEMIES_DB = {
+    PUNK: {
+        name: "PUNK",
+        spriteSrc: 'assets/Spritesheet-punk.png',
+        speed: 1.6, hp: 45, power: 7,
+        shirtColor: "#ff0055", pantsColor: "#111111"
+    },
+    CHASER: {
+        name: "CHASER",
+        spriteSrc: 'assets/Spritesheet-chaser.png',
+        speed: 2.2, hp: 35, power: 5,
+        shirtColor: "#ffee00", pantsColor: "#00ff66"
+    },
+    TANK: {
+        name: "TANK",
+        spriteSrc: 'assets/Spritesheet-tank.png',
+        speed: 1.1, hp: 120, power: 15,
+        shirtColor: "#9900ff", pantsColor: "#ffee00"
+    },
+    BOSS: {
+        name: "CYBER-LORD",
+        spriteSrc: 'assets/Spritesheet-boss.png',
+        speed: 1.4, hp: 250, power: 18,
+        shirtColor: "#ff0000", pantsColor: "#000000"
+    }
+};
+
+let selectedCharIndex = 0;
+
+/* ==========================================================================
+   ESTADO DEL JUEGO
+   ========================================================================== */
+let gameState = 'INTRO';
+let score = 0;
+let currentBlock = 1;
+let cameraX = 0;
+let targetCameraX = 0;
+let cameraShakeTime = 0;
+let cameraShakeIntensity = 0;
+
+let glitchTime = 0; // Temporizador para efecto Glitch Neón de R1
+
+let player = null;
+let enemies = [];
+let particles = [];
+let floatingTexts = [];
+let shockwaves = [];
+
+/* ==========================================================================
+   CONTROLES DE ENTRADA
+   ========================================================================== */
+const keys = {};
+const touchInput = { x: 0, y: 0, atk: false, jmp: false, combo: false, spec: false, bomb: false };
+let isTouchDevice = false;
+
+window.addEventListener('keydown', e => { keys[e.code] = true; });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+window.addEventListener('touchstart', () => {
+    if (!isTouchDevice) {
+        isTouchDevice = true;
+        document.getElementById('touch-controls').style.display = 'block';
+    }
+}, { once: true });
+
+const dpadZone = document.getElementById('dpad-zone');
+const joystickStick = document.getElementById('joystick-stick');
+let touchId = null;
+
+dpadZone.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    touchId = touch.identifier;
+    updateJoystick(touch);
+});
+
+dpadZone.addEventListener('touchmove', e => {
+    e.preventDefault();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === touchId) updateJoystick(e.changedTouches[i]);
+    }
+});
+
+const resetJoystick = () => {
+    touchId = null;
+    joystickStick.style.top = '45px';
+    joystickStick.style.left = '45px';
+    touchInput.x = 0; touchInput.y = 0;
+};
+dpadZone.addEventListener('touchend', resetJoystick);
+dpadZone.addEventListener('touchcancel', resetJoystick);
+
+function updateJoystick(touch) {
+    const rect = dpadZone.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    let dx = touch.clientX - centerX;
+    let dy = touch.clientY - centerY;
+    const dist = Math.hypot(dx, dy);
+    const maxDist = rect.width / 2;
+
+    if (dist > maxDist) {
+        dx = (dx / dist) * maxDist;
+        dy = (dy / dist) * maxDist;
+    }
+
+    joystickStick.style.left = (45 + dx) + 'px';
+    joystickStick.style.top = (45 + dy) + 'px';
+    touchInput.x = dx / maxDist;
+    touchInput.y = dy / maxDist;
+}
+
+function bindTouchBtn(id, prop) {
+    const btn = document.getElementById(id);
+    btn.addEventListener('touchstart', (e) => { e.preventDefault(); touchInput[prop] = true; });
+    btn.addEventListener('touchend', (e) => { e.preventDefault(); touchInput[prop] = false; });
+}
+bindTouchBtn('t-btn-atk', 'atk');
+bindTouchBtn('t-btn-jmp', 'jmp');
+bindTouchBtn('t-btn-combo', 'combo');
+bindTouchBtn('t-btn-spec', 'spec');
+bindTouchBtn('t-btn-bomb', 'bomb');
+
+function getInputs() {
+    let input = { x: 0, y: 0, atk: false, jmp: false, combo: false, spec: false, bomb: false };
+
+    if (keys['KeyA'] || keys['ArrowLeft']) input.x -= 1;
+    if (keys['KeyD'] || keys['ArrowRight']) input.x += 1;
+    if (keys['KeyW'] || keys['ArrowUp']) input.y -= 1;
+    if (keys['KeyS'] || keys['ArrowDown']) input.y += 1;
+    if (keys['KeyJ']) input.atk = true;
+    if (keys['KeyK']) input.jmp = true;
+    if (keys['KeyU']) input.combo = true;
+    if (keys['KeyI']) input.spec = true;
+    if (keys['KeyO']) input.bomb = true;
+
+    if (touchInput.x !== 0 || touchInput.y !== 0) { input.x = touchInput.x; input.y = touchInput.y; }
+    if (touchInput.atk) input.atk = true;
+    if (touchInput.jmp) input.jmp = true;
+    if (touchInput.combo) input.combo = true;
+    if (touchInput.spec) input.spec = true;
+    if (touchInput.bomb) input.bomb = true;
+
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (let i = 0; i < gamepads.length; i++) {
+        const gp = gamepads[i];
+        if (gp && gp.connected) {
+            const axisX = gp.axes[0];
+            const axisY = gp.axes[1];
+            if (Math.abs(axisX) > 0.2) input.x = axisX;
+            if (Math.abs(axisY) > 0.2) input.y = axisY;
+
+            if (gp.buttons[14] && gp.buttons[14].pressed) input.x = -1;
+            if (gp.buttons[15] && gp.buttons[15].pressed) input.x = 1;
+            if (gp.buttons[12] && gp.buttons[12].pressed) input.y = -1;
+            if (gp.buttons[13] && gp.buttons[13].pressed) input.y = 1;
+
+            if (gp.buttons[0] && gp.buttons[0].pressed) input.atk = true;
+            if (gp.buttons[1] && gp.buttons[1].pressed) input.jmp = true;
+            if (gp.buttons[2] && gp.buttons[2].pressed) input.combo = true;
+            if (gp.buttons[3] && gp.buttons[3].pressed) input.spec = true;
+            if ((gp.buttons[5] && gp.buttons[5].pressed) || (gp.buttons[7] && gp.buttons[7].pressed)) input.bomb = true;
+        }
+    }
+
+    return input;
+}
+
+/* ==========================================================================
+   RENDERIZADO CON SPRITESHEET Y PALETTE SWAP
+   ========================================================================== */
+const spritePaletteCache = new Map();
+
+function getTintedSpriteSheet(image, shirtColor, pantsColor) {
+    if (!image || !image.complete || image.naturalWidth === 0) return image;
+
+    const key = `${image.src}_${shirtColor}_${pantsColor}`;
+    if (spritePaletteCache.has(key)) return spritePaletteCache.get(key);
+
+    const c = document.createElement('canvas');
+    c.width = image.width;
+    c.height = image.height;
+    const cx = c.getContext('2d');
+    cx.drawImage(image, 0, 0);
+
+    try {
+        const imgData = cx.getImageData(0, 0, c.width, c.height);
+        const data = imgData.data;
+
+        const hexToRgb = hex => {
+            let color = hex.replace('#', '');
+            if (color.length === 3) color = color.split('').map(x => x + x).join('');
+            const num = parseInt(color, 16);
+            return [num >> 16, (num >> 8) & 255, num & 255];
+        };
+
+        const sRgb = hexToRgb(shirtColor);
+        const pRgb = hexToRgb(pantsColor);
+
+        for (let i = 0; i < data.length; i += 4) {
+            if (data[i] > 240 && data[i + 1] > 240 && data[i + 2] > 240) {
+                data[i] = sRgb[0]; data[i + 1] = sRgb[1]; data[i + 2] = sRgb[2];
+            }
+            else if (data[i] < 20 && data[i + 1] > 110 && data[i + 2] > 240) {
+                data[i] = pRgb[0]; data[i + 1] = pRgb[1]; data[i + 2] = pRgb[2];
+            }
+        }
+
+        cx.putImageData(imgData, 0, 0);
+        spritePaletteCache.set(key, c);
+        return c;
+    } catch (e) {
+        spritePaletteCache.set(key, image);
+        return image;
+    }
+}
+
+class SpriteManager {
+    static drawEntity(ctx, entity) {
+        ctx.save();
+        ctx.translate(entity.x - cameraX, entity.y - entity.z);
+        if (entity.facing === -1) ctx.scale(-1, 1);
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, entity.radius, entity.radius / 2.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (entity.hurtTimer > 0 && Math.floor(Date.now() / 40) % 2 === 0) {
+            ctx.restore();
+            return;
+        }
+
+        let row = ANIM_ROWS.IDLE;
+        let frameIndex = Math.floor(Date.now() / 120) % SPRITE_COLS;
+
+        if (entity.hp <= 0 || entity.isKnockedDown) {
+            row = ANIM_ROWS.DOWN;
+            frameIndex = 0;
+        } else if (entity.hurtTimer > 0) {
+            row = ANIM_ROWS.KNOCKBACK;
+        } else if (entity.z > 0) {
+            row = ANIM_ROWS.JUMP_KICK;
+        } else if (entity.isAttacking) {
+            const attackType = entity.currentAttackType || 'JAB';
+            if (attackType === 'HOOK') row = ANIM_ROWS.HOOK;
+            else if (attackType === 'HIGH_KICK') row = ANIM_ROWS.HIGH_KICK;
+            else if (attackType === 'LOW_KICK') row = ANIM_ROWS.LOW_KICK;
+            else if (attackType === 'STRAIGHT_PUNCH') row = ANIM_ROWS.STRAIGHT_PUNCH;
+            else row = ANIM_ROWS.JAB;
+        } else if (entity.isMoving) {
+            row = (Math.abs(entity.vx || 1) > 5) ? ANIM_ROWS.RUN : ANIM_ROWS.WALK;
+        }
+
+        const sourceImage = getTintedSpriteSheet(entity.spriteSheet, entity.shirtColor, entity.pantsColor);
+
+        const sx = frameIndex * SPRITE_SIZE;
+        const sy = row * SPRITE_SIZE;
+
+        if (sourceImage) {
+            ctx.drawImage(
+                sourceImage,
+                sx, sy, SPRITE_SIZE, SPRITE_SIZE,
+                -SPRITE_SIZE / 2, -SPRITE_SIZE + 6, SPRITE_SIZE, SPRITE_SIZE
+            );
+        }
+
+        ctx.restore();
+    }
+}
+
+/* ==========================================================================
+   CLASES DE ENTIDAD (JUGADOR Y ENEMIGOS)
+   ========================================================================== */
+class Entity {
+    constructor(x, y, spriteSrc) {
+        this.x = x; this.y = y; this.z = 0; this.vz = 0;
+        this.radius = 22;
+        this.facing = 1;
+        this.hp = 100; this.maxHp = 100;
+        this.name = "ENTIDAD";
+        this.isAttacking = false;
+        this.isMoving = false;
+        this.attackTimer = 0;
+        this.hurtTimer = 0;
+        this.hitbox = null;
+        this.isDead = false;
+        this.shirtColor = "#ffffff";
+        this.pantsColor = "#0078f8";
+        this.hitComboCount = 0;
+        this.currentAttackType = 'JAB';
+
+        this.spriteSheet = new Image();
+        if (spriteSrc) {
+            this.spriteSheet.src = spriteSrc;
+        }
+    }
+
+    get Hurtbox() {
+        return {
+            x: this.x - 22,
+            y: this.y - 50,
+            z: this.z,
+            w: 44,
+            h: 50
+        };
+    }
+}
+
+class PlayerEntity extends Entity {
+    constructor(x, y, charData, customName) {
+        super(x, y, charData.spriteSrc);
+        this.name = customName || charData.name;
+        this.speed = charData.speed;
+        this.power = charData.power;
+        this.hp = charData.hp; this.maxHp = charData.hp;
+        this.shirtColor = charData.shirtColor;
+        this.pantsColor = charData.pantsColor;
+        this.stamina = 100; this.maxStamina = 100;
+        this.lives = 3;
+        this.comboStep = 0;
+        this.comboTimer = 0;
+
+        this.isKnockedDown = false;
+        this.respawnTimer = 0;
+    }
+
+    update(input) {
+        if (this.isKnockedDown) {
+            this.respawnTimer--;
+
+            if (this.respawnTimer <= 0) {
+                this.lives--;
+                if (this.lives <= 0) {
+                    endGame();
+                } else {
+                    this.isKnockedDown = false;
+                    this.hp = this.maxHp;
+                    this.hurtTimer = 60;
+                    createFloatingText("RESPAWN!", this.x, this.y - 50, '#00ff66');
+                }
+            }
+            return;
+        }
+
+        if (this.hurtTimer > 0) this.hurtTimer--;
+        if (this.stamina < this.maxStamina) this.stamina += 0.35;
+
+        this.isMoving = (input.x !== 0 || input.y !== 0);
+
+        if (!this.isAttacking) {
+            this.x += input.x * this.speed;
+            this.y += input.y * (this.speed * 0.7);
+            if (input.x !== 0) this.facing = Math.sign(input.x);
+        }
+
+        this.y = Math.max(STAGE_TOP_Y, Math.min(STAGE_BOTTOM_Y, this.y));
+        this.x = Math.max(cameraX + 20, Math.min(cameraX + CANVAS_WIDTH - 20, this.x));
+
+        if (input.jmp && this.z === 0) this.vz = 10.5;
+
+        if (this.z > 0 || this.vz !== 0) {
+            this.z += this.vz;
+            this.vz -= 0.65;
+            if (this.z <= 0) { this.z = 0; this.vz = 0; }
+        }
+
+        if (this.comboTimer > 0) this.comboTimer--;
+        else this.comboStep = 0;
+
+        if (this.isAttacking) {
+            this.attackTimer--;
+            if (this.attackTimer <= 0) {
+                this.isAttacking = false;
+                this.hitbox = null;
+            }
+        } else {
+            if (input.atk) this.performAttack('BASIC');
+            else if (input.combo && this.stamina >= 25) this.performAttack('CHAIN');
+            else if (input.spec && this.stamina >= 45) this.performAttack('ONE_HIT');
+            else if (input.bomb && this.stamina >= 75) this.performAttack('BOMB');
+        }
+    }
+
+    takeDamage(damage) {
+        this.hp -= damage;
+        this.hurtTimer = 25;
+        triggerCameraShake(8, 10);
+        createExplosion(this.x, this.y - 20, '#ff0000');
+        createFloatingText("-" + damage, this.x, this.y - 40, '#ff0000');
+
+        if (this.hp <= 0 && !this.isKnockedDown) {
+            this.hp = 0;
+            this.isKnockedDown = true;
+            this.respawnTimer = 180;
+            this.isAttacking = false;
+            this.hitbox = null;
+            createFloatingText("DOWN!!", this.x, this.y - 60, '#ff0055');
+        }
+    }
+
+    performAttack(type) {
+        this.isAttacking = true;
+
+        if (type === 'BASIC') {
+            this.attackTimer = 14;
+            this.comboStep = (this.comboStep % 3) + 1;
+            this.comboTimer = 35;
+
+            const attacks = ['JAB', 'STRAIGHT_PUNCH', 'HIGH_KICK'];
+            this.currentAttackType = attacks[this.comboStep - 1];
+
+            this.hitbox = { offsetX: 10, w: 65, h: 50, damage: this.power, type: 'NORMAL' };
+        } else if (type === 'CHAIN') {
+            this.stamina -= 25;
+            this.attackTimer = 18;
+            this.currentAttackType = 'HIGH_KICK';
+            this.hitbox = { offsetX: 5, w: 80, h: 55, damage: this.power * 2.2, type: 'CHAIN' };
+            triggerCameraShake(6, 8);
+        } else if (type === 'ONE_HIT') {
+            this.stamina -= 45;
+            this.attackTimer = 22;
+            this.currentAttackType = 'HOOK';
+            this.hitbox = { offsetX: 15, w: 75, h: 50, damage: 160, type: 'ONE_HIT' };
+            triggerCameraShake(10, 12);
+        } else if (type === 'BOMB') {
+            // MOVIMIENTO ESPECIAL BOMBA NEÓN / GANCHO HOOK
+            this.stamina -= 75;
+            this.attackTimer = 35;
+            this.currentAttackType = 'HOOK'; // HABILITADA ANIMACIÓN DE GANCHO
+
+            // Efectos de Glitch y Shaking
+            triggerGlitch(18);
+            triggerCameraShake(18, 20);
+
+            // Onda expansiva visual
+            shockwaves.push({
+                x: this.x,
+                y: this.y - 20,
+                radius: 10,
+                maxRadius: 280,
+                color: '#ffee00',
+                life: 20
+            });
+
+            enemies.forEach(e => {
+                if (e.hp > 0) {
+                    e.hp -= 150;
+                    e.hurtTimer = 35;
+                    createExplosion(e.x, e.y - 20, '#ffee00');
+                    if (e.hp <= 0) e.triggerKnockdown();
+                }
+            });
+
+            createFloatingText("HOOK NEON BOMB!!", this.x, this.y - 65, '#ffee00');
+        }
+    }
+
+    triggerKOAttack(target) {
+        this.isAttacking = true;
+        this.attackTimer = 25;
+        this.currentAttackType = 'HOOK';
+        this.hitbox = { offsetX: 15, w: 90, h: 60, damage: 250, type: 'KO' };
+        triggerGlitch(10);
+        triggerCameraShake(16, 18);
+        createExplosion(target.x, target.y - 20, '#ffee00');
+        createFloatingText("FINISH KO!!", target.x, target.y - 70, '#ff0055');
+    }
+}
+
+class EnemyEntity extends Entity {
+    constructor(x, y, typeKey, level = 1, slotIndex = 0) {
+        const config = ENEMIES_DB[typeKey] || ENEMIES_DB['PUNK'];
+
+        super(x, y, config.spriteSrc);
+
+        this.type = typeKey;
+        this.isBoss = (typeKey === 'BOSS');
+        this.level = level;
+        this.attackCooldown = 0;
+        this.slotOffset = (slotIndex % 2 === 0 ? 1 : -1) * (25 + Math.random() * 20);
+
+        this.name = config.name + (this.isBoss ? " Mk" + level : " v" + level);
+        this.speed = config.speed + (level * 0.1);
+        this.hp = config.hp + (level * 10);
+        this.power = config.power;
+        this.shirtColor = config.shirtColor;
+        this.pantsColor = config.pantsColor;
+
+        if (this.isBoss) {
+            const bossSkins = ['#ff0000', '#00ff66', '#00f3ff', '#ffffff'];
+            this.shirtColor = bossSkins[level % bossSkins.length];
+            this.radius = 28;
+        } else if (typeKey === 'TANK') {
+            this.radius = 26;
+        }
+
+        this.maxHp = this.hp;
+        this.isKnockedDown = false;
+        this.despawnTimer = 0;
+    }
+
+    triggerKnockdown() {
+        if (!this.isKnockedDown) {
+            this.hp = 0;
+            this.isKnockedDown = true;
+            this.isAttacking = false;
+            this.isMoving = false;
+            this.hitbox = null;
+            this.despawnTimer = 120;
+            createExplosion(this.x, this.y - 20, '#ff0055');
+            createFloatingText("K.O.", this.x, this.y - 50, '#ff0055');
+        }
+    }
+
+    update() {
+        if (this.isKnockedDown || this.hp <= 0) {
+            this.isMoving = false;
+            this.isAttacking = false;
+            this.hitbox = null;
+            this.despawnTimer--;
+
+            if (this.despawnTimer <= 0) {
+                this.isDead = true;
+            }
+            return;
+        }
+
+        if (this.hurtTimer > 0) this.hurtTimer--;
+        if (this.attackCooldown > 0) this.attackCooldown--;
+
+        if (this.isAttacking) {
+            this.attackTimer--;
+            if (this.attackTimer <= 0) {
+                this.isAttacking = false;
+                this.hitbox = null;
+            }
+            return;
+        }
+
+        const dx = player.x - this.x;
+        const targetY = player.y + this.slotOffset;
+        const dy = targetY - this.y;
+        const directDy = player.y - this.y;
+        const dist = Math.hypot(dx, directDy);
+
+        this.facing = dx >= 0 ? 1 : -1;
+        this.isMoving = Math.abs(dx) > 40 || Math.abs(dy) > 5;
+
+        if (Math.abs(dx) > 45) {
+            this.x += Math.sign(dx) * this.speed;
+            if (Math.abs(dy) > 5) this.y += Math.sign(dy) * (this.speed * 0.7);
+        } else {
+            if (Math.abs(directDy) > 15) {
+                this.y += Math.sign(directDy) * (this.speed * 0.8);
+            } else {
+                if (dist < 55 && this.attackCooldown <= 0 && this.hurtTimer <= 0) {
+                    this.isAttacking = true;
+                    this.attackTimer = 16;
+                    this.currentAttackType = (Math.random() > 0.5) ? 'JAB' : 'LOW_KICK';
+                    this.attackCooldown = 90 + Math.random() * 40;
+                    this.hitbox = { offsetX: 8, w: 45, h: 40, damage: this.power };
+                }
+            }
+        }
+
+        this.y = Math.max(STAGE_TOP_Y, Math.min(STAGE_BOTTOM_Y, this.y));
+    }
+}
+
+function resolvePhysicalCollisions() {
+    const allEntities = [player, ...enemies.filter(e => !e.isKnockedDown)];
+    for (let i = 0; i < allEntities.length; i++) {
+        for (let j = i + 1; j < allEntities.length; j++) {
+            const e1 = allEntities[i];
+            const e2 = allEntities[j];
+            const dx = e2.x - e1.x;
+            const dy = (e2.y - e1.y) * 2;
+            const dist = Math.hypot(dx, dy);
+            const minDist = e1.radius + e2.radius;
+
+            if (dist < minDist && dist > 0) {
+                const overlap = (minDist - dist) / dist;
+                const pushX = dx * overlap * 0.4;
+                const pushY = (dy / 2) * overlap * 0.4;
+
+                if (e1 === player) { e2.x += pushX; e2.y += pushY; }
+                else if (e2 === player) { e1.x -= pushX; e1.y -= pushY; }
+                else {
+                    e1.x -= pushX * 0.5; e1.y -= pushY * 0.5;
+                    e2.x += pushX * 0.5; e2.y += pushY * 0.5;
+                }
+            }
+        }
+    }
+}
+
+/* ==========================================================================
+   EFECTOS VISUALES Y CÁMARA (GLITCH / SHAKE)
+   ========================================================================== */
+function triggerCameraShake(intensity, duration) {
+    cameraShakeIntensity = intensity;
+    cameraShakeTime = duration;
+}
+
+function triggerGlitch(duration) {
+    glitchTime = duration;
+}
+
+function createExplosion(x, y, color) {
+    for (let i = 0; i < 14; i++) {
+        particles.push({
+            x: x, y: y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 22,
+            color: color || '#ff007f'
+        });
+    }
+}
+
+function createFloatingText(text, x, y, color) {
+    floatingTexts.push({ text: text, x: x, y: y, vy: -1.4, life: 35, color: color || '#fff' });
+}
+
+function applyGlitchEffect() {
+    if (glitchTime <= 0) return;
+    glitchTime--;
+
+    const slices = 5;
+    for (let i = 0; i < slices; i++) {
+        const sy = Math.random() * CANVAS_HEIGHT;
+        const sh = Math.random() * 20 + 5;
+        const offsetX = (Math.random() - 0.5) * 30;
+
+        ctx.drawImage(
+            canvas,
+            0, sy, CANVAS_WIDTH, sh,
+            offsetX, sy, CANVAS_WIDTH, sh
+        );
+    }
+}
+
+/* ==========================================================================
+   LOOP DE JUEGO Y LÓGICA DE ONDAS
+   ========================================================================== */
+function updateGame() {
+    if (gameState !== 'GAME') return;
+
+    targetCameraX = player.x - 200;
+    if (targetCameraX < cameraX) targetCameraX = cameraX;
+    cameraX += (targetCameraX - cameraX) * 0.1;
+
+    const newBlock = Math.floor(cameraX / 1000) + 1;
+    if (newBlock > currentBlock) {
+        currentBlock = newBlock;
+        createFloatingText("BLOCK " + currentBlock, player.x, 200, '#00ff66');
+        spawnWave();
+    }
+
+    const input = getInputs();
+    player.update(input);
+
+    resolvePhysicalCollisions();
+
+    // Detección Jugador -> Enemigos
+    if (player.isAttacking && player.hitbox) {
+        enemies.forEach(enemy => {
+            if (!enemy.isKnockedDown && enemy.hurtTimer <= 0 && checkHitboxCollision(player, player.hitbox, enemy.Hurtbox)) {
+                
+                enemy.hitComboCount++;
+                let damageToApply = player.hitbox.damage;
+
+                if (enemy.hitComboCount >= 5) {
+                    damageToApply *= 2.5;
+                    player.triggerKOAttack(enemy);
+                    enemy.hitComboCount = 0;
+                    enemy.triggerKnockdown();
+                    score += enemy.isBoss ? 2500 : 600;
+                } else {
+                    enemy.hp -= damageToApply;
+                    enemy.hurtTimer = 10;
+                    score += 150;
+                    triggerCameraShake(4, 6);
+                    createExplosion(enemy.x, enemy.y - 20, '#00f3ff');
+                    createFloatingText(Math.floor(damageToApply).toString() + (enemy.hitComboCount >= 4 ? " COMBO!" : ""), enemy.x, enemy.y - 40, '#ffee00');
+
+                    if (enemy.hp <= 0) {
+                        enemy.triggerKnockdown();
+                        score += enemy.isBoss ? 2500 : 600;
+                    }
+                }
+            }
+        });
+    }
+
+    // Detección Enemigos -> Jugador
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+        enemy.update();
+
+        if (!enemy.isKnockedDown && enemy.isAttacking && enemy.hitbox && player.hurtTimer <= 0 && !player.isKnockedDown) {
+            if (checkHitboxCollision(enemy, enemy.hitbox, player.Hurtbox)) {
+                player.takeDamage(enemy.hitbox.damage);
+            }
+        }
+
+        if (enemy.isDead) enemies.splice(i, 1);
+    }
+
+    if (enemies.length === 0) spawnWave();
+
+    // Actualizar ondas de expansión
+    shockwaves.forEach((sw, idx) => {
+        sw.radius += (sw.maxRadius - sw.radius) * 0.2;
+        sw.life--;
+        if (sw.life <= 0) shockwaves.splice(idx, 1);
+    });
+
+    particles.forEach((p, index) => {
+        p.x += p.vx; p.y += p.vy; p.life--;
+        if (p.life <= 0) particles.splice(index, 1);
+    });
+
+    floatingTexts.forEach((t, index) => {
+        t.y += t.vy; t.life--;
+        if (t.life <= 0) floatingTexts.splice(index, 1);
+    });
+
+    if (cameraShakeTime > 0) cameraShakeTime--;
+}
+
+function checkHitboxCollision(attacker, hitbox, targetHurtbox) {
+    const hx = attacker.facing === 1 ? attacker.x + hitbox.offsetX : attacker.x - hitbox.offsetX - hitbox.w;
+    const hy = attacker.y - attacker.z - hitbox.h / 2;
+
+    if (Math.abs(attacker.y - targetHurtbox.y) > 50) return false;
+
+    return (
+        hx < targetHurtbox.x + targetHurtbox.w &&
+        hx + hitbox.w > targetHurtbox.x &&
+        hy < targetHurtbox.y + targetHurtbox.h &&
+        hy + hitbox.h > targetHurtbox.y
+    );
+}
+
+function spawnWave() {
+    const spawnX = cameraX + CANVAS_WIDTH + 50;
+    const count = 2 + Math.min(currentBlock, 4);
+
+    for (let i = 0; i < count; i++) {
+        const types = ['PUNK', 'CHASER', 'TANK'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const enemyY = STAGE_TOP_Y + Math.random() * (STAGE_BOTTOM_Y - STAGE_TOP_Y);
+        enemies.push(new EnemyEntity(spawnX + i * 50, enemyY, type, currentBlock, i));
+    }
+
+    if (currentBlock % 3 === 0) {
+        enemies.push(new EnemyEntity(spawnX + 150, (STAGE_TOP_Y + STAGE_BOTTOM_Y) / 2, 'BOSS', Math.floor(currentBlock / 3), 0));
+        createFloatingText("WARNING: BOSS!!", cameraX + CANVAS_WIDTH / 2, 180, '#ff0055');
+    }
+}
+
+/* ==========================================================================
+   RENDERIZADO DE ESCENARIO Y HUD
+   ========================================================================== */
+function renderGame() {
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    ctx.save();
+    if (cameraShakeTime > 0) {
+        ctx.translate((Math.random() - 0.5) * cameraShakeIntensity, (Math.random() - 0.5) * cameraShakeIntensity);
+    }
+
+    drawImprovedStage();
+
+    // Renderizar ondas de choque
+    shockwaves.forEach(sw => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(sw.x - cameraX, sw.y, sw.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = sw.color;
+        ctx.lineWidth = 4;
+        ctx.shadowColor = sw.color;
+        ctx.shadowBlur = 15;
+        ctx.stroke();
+        ctx.restore();
+    });
+
+    const renderList = [player, ...enemies].sort((a, b) => a.y - b.y);
+    renderList.forEach(entity => {
+        SpriteManager.drawEntity(ctx, entity);
+        if (!entity.isKnockedDown && entity.hp > 0) {
+            drawEntityHUD(entity);
+        }
+    });
+
+    particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - cameraX, p.y, 4, 4);
+    });
+
+    floatingTexts.forEach(t => {
+        ctx.fillStyle = t.color;
+        ctx.font = '8px "Press Start 2P"';
+        ctx.textAlign = 'center';
+        ctx.fillText(t.text, t.x - cameraX, t.y);
+    });
+
+    ctx.restore();
+
+    // Efecto de Glitch RGB / Distorsión en pantalla
+    applyGlitchEffect();
+
+    drawGameHUD();
+}
+
+function drawImprovedStage() {
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, STAGE_TOP_Y);
+    skyGrad.addColorStop(0, '#04020a');
+    skyGrad.addColorStop(1, '#180a2a');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, STAGE_TOP_Y);
+
+    ctx.fillStyle = '#0c071b';
+    const bgOffset = -(cameraX * 0.15);
+    for (let i = -2; i < 15; i++) {
+        const bx = i * 90 + (bgOffset % 90);
+        const bh = 80 + (Math.sin(i * 1.5) * 40);
+        ctx.fillRect(bx, STAGE_TOP_Y - bh, 70, bh);
+
+        ctx.fillStyle = (i % 2 === 0) ? '#ff007f' : '#00f3ff';
+        ctx.fillRect(bx + 15, STAGE_TOP_Y - bh + 15, 8, 12);
+        ctx.fillRect(bx + 40, STAGE_TOP_Y - bh + 35, 8, 12);
+        ctx.fillStyle = '#0c071b';
+    }
+
+    ctx.fillStyle = '#221533';
+    ctx.fillRect(0, STAGE_TOP_Y - 12, CANVAS_WIDTH, 12);
+    ctx.fillStyle = '#ff007f';
+    ctx.fillRect(0, STAGE_TOP_Y - 2, CANVAS_WIDTH, 2);
+
+    const streetGrad = ctx.createLinearGradient(0, STAGE_TOP_Y, 0, STAGE_BOTTOM_Y);
+    streetGrad.addColorStop(0, '#120d1f');
+    streetGrad.addColorStop(1, '#080511');
+    ctx.fillStyle = streetGrad;
+    ctx.fillRect(0, STAGE_TOP_Y, CANVAS_WIDTH, STAGE_BOTTOM_Y - STAGE_TOP_Y);
+
+    ctx.strokeStyle = 'rgba(0, 243, 255, 0.15)';
+    ctx.lineWidth = 2;
+    const floorOffset = -(cameraX) % 50;
+    for (let x = floorOffset; x < CANVAS_WIDTH; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, STAGE_TOP_Y); ctx.lineTo(x - 30, STAGE_BOTTOM_Y);
+        ctx.stroke();
+    }
+}
+
+function drawEntityHUD(entity) {
+    const screenX = entity.x - cameraX;
+    const screenY = entity.y - entity.z - 72;
+
+    ctx.save();
+    ctx.font = '6px "Press Start 2P"';
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = entity === player ? '#00ff66' : (entity.isBoss ? '#ff0055' : '#ffee00');
+    ctx.fillText(entity.name, screenX, screenY - 6);
+
+    const barW = 42; const barH = 5;
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.fillRect(screenX - barW / 2, screenY, barW, barH);
+
+    const hpPercent = Math.max(0, entity.hp / entity.maxHp);
+    ctx.fillStyle = entity === player ? '#00ff66' : '#ff0055';
+    ctx.fillRect(screenX - barW / 2, screenY, barW * hpPercent, barH);
+
+    ctx.strokeStyle = '#000';
+    ctx.strokeRect(screenX - barW / 2, screenY, barW, barH);
+    ctx.restore();
+}
+
+function drawGameHUD() {
+    ctx.save();
+
+    ctx.font = '10px "Press Start 2P"';
+    ctx.fillStyle = '#00ff66';
+    ctx.fillText("CYBER-STREETS KO", 20, 30);
+
+    ctx.font = '9px "Press Start 2P"';
+    ctx.fillStyle = '#00f3ff';
+    ctx.textAlign = 'center';
+    ctx.fillText("BLOCK: " + currentBlock, CANVAS_WIDTH / 2, 30);
+
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#ffee00';
+    ctx.fillText("SCORE:" + score, CANVAS_WIDTH - 20, 30);
+    ctx.fillStyle = '#ff0055';
+    ctx.fillText("LIVES:" + player.lives, CANVAS_WIDTH - 20, 50);
+
+    ctx.textAlign = 'left';
+    ctx.font = '7px "Press Start 2P"';
+    ctx.fillStyle = '#00f3ff';
+    ctx.fillText("STAMINA", 20, 50);
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(20, 56, 150, 8);
+    ctx.fillStyle = '#00f3ff';
+    ctx.fillRect(20, 56, (player.stamina / player.maxStamina) * 150, 8);
+    ctx.strokeStyle = '#00f3ff';
+    ctx.strokeRect(20, 56, 150, 8);
+
+    ctx.restore();
+}
+
+/* ==========================================================================
+   INTERFAZ DE USUARIO Y NAVEGACIÓN
+   ========================================================================== */
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    if (screenId) document.getElementById(screenId).classList.remove('hidden');
+}
+
+function goToSelect() {
+    gameState = 'SELECT';
+    showScreen('screen-select');
+    setupCharGrid();
+}
+
+function setupCharGrid() {
+    const grid = document.getElementById('char-grid');
+    grid.innerHTML = '';
+    CHARACTERS_DB.forEach((char, index) => {
+        const card = document.createElement('div');
+        card.className = `char-card ${index === selectedCharIndex ? 'selected' : ''}`;
+        card.onclick = () => { selectedCharIndex = index; setupCharGrid(); };
+        card.innerHTML = `
+            <div class="char-avatar" style="background:${char.shirtColor}; color:#000;">${char.name[0]}</div>
+            <div style="font-size:0.6rem; font-weight:bold; color:#fff">${char.name}</div>
+            <div style="font-size:0.45rem; margin-top:8px; color:var(--neon-cyan)">SPD:${char.speed} PWR:${char.power}</div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function startGame() {
+    const charData = CHARACTERS_DB[selectedCharIndex];
+    const customName = document.getElementById('player-name-input').value.trim() || "ALEX";
+
+    player = new PlayerEntity(100, 400, charData, customName);
+    enemies = []; particles = []; floatingTexts = []; shockwaves = [];
+    score = 0; currentBlock = 1; cameraX = 0;
+
+    showScreen(null);
+    gameState = 'GAME';
+    spawnWave();
+}
+
+function endGame() {
+    gameState = 'GAMEOVER';
+    document.getElementById('final-score').innerText = score;
+    document.getElementById('final-stage').innerText = currentBlock;
+    showScreen('screen-gameover');
+}
+
+function resetToMenu() {
+    gameState = 'INTRO';
+    showScreen('screen-intro');
+}
+
+function toggleModal(show) {
+    document.getElementById('info-modal').classList.toggle('hidden', !show);
+}
+
+function loop() {
+    updateGame();
+    if (gameState === 'GAME') renderGame();
+    requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
