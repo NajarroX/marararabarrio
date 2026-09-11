@@ -496,6 +496,128 @@ function toggleFullScreen() {
 }
 
 /* ==========================================================================
+   SISTEMA DE EFECTOS DE SONIDO 8-BIT (WEB AUDIO API)
+   ========================================================================== */
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+window.addEventListener('keydown', initAudio, { once: true });
+window.addEventListener('touchstart', initAudio, { once: true });
+window.addEventListener('click', initAudio, { once: true });
+
+const SoundEffects = {
+    // Golpe o patada básica al aire
+    swing: () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+    },
+
+    // Impacto recibido por un enemigo (Golpe de impacto con ruido)
+    hitEnemy: () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    },
+
+    // Impacto recibido por el Jugador
+    hitPlayer: () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 0.18);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.18);
+    },
+
+    // Movimiento Especial R1 (Agarre)
+    grabR1: () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(380, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+    },
+
+    // Movimiento Especial L1 (Bomba Neón / Explosión 8-bit)
+    specialL1: () => {
+        if (!audioCtx) return;
+        const bufferSize = audioCtx.sampleRate * 0.4;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+
+        noise.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+    },
+
+    // Muerte del jugador / K.O.
+    playerDeath: () => {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.6);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.6);
+    }
+};
+
+/* ==========================================================================
    PERSONAJES Y ENEMIGOS (CON SOPORTE DE RETRATOS EN ASSETS)
    ========================================================================== */
 const CHARACTERS_DB = [
@@ -880,9 +1002,11 @@ class PlayerEntity extends Entity {
     takeDamage(damage) {
         if (this.isBlocking) {
             damage *= 0.2;
+            SoundEffects.swing();
             createFloatingText("BLOCK!", this.x, this.y - 50, '#00f3ff');
         } else {
             this.hurtTimer = 25;
+            SoundEffects.hitPlayer();
             triggerCameraShake(8, 10);
             createExplosion(this.x, this.y - 20, '#ff0000');
             createFloatingText("-" + Math.floor(damage), this.x, this.y - 50, '#ff0000');
@@ -896,6 +1020,7 @@ class PlayerEntity extends Entity {
             this.respawnTimer = 180;
             this.isAttacking = false;
             this.hitbox = null;
+            SoundEffects.playerDeath();
             createFloatingText("DOWN!!", this.x, this.y - 70, '#ff0055');
         }
     }
@@ -905,22 +1030,27 @@ class PlayerEntity extends Entity {
         this.currentAttackType = type;
 
         if (type === 'JAB') {
+            SoundEffects.swing();
             this.attackTimer = 12;
             this.hitbox = { offsetX: 10 * SPRITE_SCALE, w: 60 * SPRITE_SCALE, h: 45 * SPRITE_SCALE, damage: this.power };
         } else if (type === 'HIGH_KICK') {
+            SoundEffects.swing();
             this.attackTimer = 16;
             this.hitbox = { offsetX: 12 * SPRITE_SCALE, w: 70 * SPRITE_SCALE, h: 50 * SPRITE_SCALE, damage: this.power * 1.4 };
         } else if (type === 'FLYING_KICK') {
+            SoundEffects.swing();
             this.vz = 7;
             this.attackTimer = 20;
             this.currentAttackType = 'JUMP_KICK';
             this.hitbox = { offsetX: 15 * SPRITE_SCALE, w: 80 * SPRITE_SCALE, h: 55 * SPRITE_SCALE, damage: this.power * 1.8 };
         } else if (type === 'GRAB') {
+            SoundEffects.grabR1();
             this.stamina -= 30;
             this.attackTimer = 22;
             this.currentAttackType = 'GRAB_THROW';
             this.hitbox = { offsetX: 8 * SPRITE_SCALE, w: 50 * SPRITE_SCALE, h: 50 * SPRITE_SCALE, damage: this.power * 2.5, isGrab: true };
         } else if (type === 'SPECIAL_BOMB') {
+            SoundEffects.specialL1();
             specialEnergy = 0;
             this.attackTimer = 35;
             this.currentAttackType = 'HOOK';
@@ -1052,6 +1182,7 @@ class EnemyEntity extends Entity {
                 this.y += Math.sign(directDy) * (this.speed * 0.8);
             } else {
                 if (dist < (60 * SPRITE_SCALE) && this.attackCooldown <= 0 && this.hurtTimer <= 0) {
+                    SoundEffects.swing();
                     this.isAttacking = true;
                     this.attackTimer = 16;
                     this.currentAttackType = (Math.random() > 0.5) ? 'JAB' : 'LOW_KICK';
@@ -1172,6 +1303,7 @@ function updateGame() {
                     createFloatingText("THROW!", enemy.x, enemy.y - 60, '#ffee00');
                 }
 
+                SoundEffects.hitEnemy();
                 enemy.takeDamage(damageToApply);
                 score += 150;
                 triggerCameraShake(4, 6);
