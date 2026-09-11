@@ -67,7 +67,6 @@
             max-height: 100%;
         }
 
-        /* Botón de Pantalla Completa Móvil */
         #btn-fullscreen {
             position: absolute;
             top: max(10px, env(safe-area-inset-top));
@@ -106,6 +105,27 @@
             background: rgba(5, 5, 12, 0.94);
             z-index: 10;
             padding: 20px;
+        }
+
+        /* PANTALLA INTRO CON FONDO DE ASSETS */
+        #screen-intro {
+            background: linear-gradient(rgba(5, 5, 12, 0.75), rgba(5, 5, 12, 0.85)), 
+                        url('assets/title_bg.png') center/cover no-repeat;
+        }
+
+        .title-logo {
+            max-width: 280px;
+            width: 75vw;
+            height: auto;
+            margin-bottom: 25px;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 0 12px var(--neon-pink));
+            animation: pulseLogo 2s infinite alternate;
+        }
+
+        @keyframes pulseLogo {
+            0% { transform: scale(1); filter: drop-shadow(0 0 8px var(--neon-pink)); }
+            100% { transform: scale(1.04); filter: drop-shadow(0 0 20px var(--neon-cyan)); }
         }
 
         .hidden { display: none !important; }
@@ -173,10 +193,10 @@
         .char-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 15px;
             max-width: 95%;
-            max-height: 50vh;
+            max-height: 55vh;
             overflow-y: auto;
         }
 
@@ -187,6 +207,9 @@
             cursor: pointer;
             background: rgba(255,255,255,0.03);
             transition: all 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .char-card.selected {
@@ -195,15 +218,25 @@
             background: rgba(0, 243, 255, 0.15);
         }
 
-        .char-avatar {
-            width: 40px;
-            height: 40px;
+        .char-portrait {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 2px solid var(--neon-cyan);
+            margin-bottom: 6px;
+            background: #000;
+        }
+
+        .char-avatar-fallback {
+            width: 70px;
+            height: 70px;
             margin: 0 auto 6px;
             border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 1.5rem;
             border: 2px solid #fff;
         }
 
@@ -236,7 +269,7 @@
             line-height: 1.8;
         }
 
-        /* AJUSTES RESPONSIVOS DE CONTROLES TÁCTILES */
+        /* CONTROLES TÁCTILES MÓVILES */
         #touch-controls {
             position: absolute;
             top: 0;
@@ -281,19 +314,27 @@
             bottom: max(15px, env(safe-area-inset-bottom));
             right: max(15px, env(safe-area-inset-right));
             display: grid;
-            grid-template-columns: repeat(3, clamp(40px, 10vw, 52px));
-            gap: 8px;
+            grid-template-columns: repeat(2, clamp(42px, 11vw, 54px));
+            gap: 10px;
+            touch-action: none;
+        }
+
+        #shoulder-zone {
+            top: max(15px, env(safe-area-inset-top));
+            right: max(15px, env(safe-area-inset-right));
+            display: flex;
+            gap: 10px;
             touch-action: none;
         }
 
         .touch-btn {
-            width: clamp(40px, 10vw, 52px);
-            height: clamp(40px, 10vw, 52px);
+            width: clamp(42px, 11vw, 54px);
+            height: clamp(42px, 11vw, 54px);
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.8);
             border: 2px solid var(--neon-cyan);
             color: var(--neon-cyan);
-            font-size: clamp(0.38rem, 1vw, 0.5rem);
+            font-size: clamp(0.6rem, 1.5vw, 0.8rem);
             font-family: var(--ui-font);
             display: flex;
             align-items: center;
@@ -303,10 +344,23 @@
         }
 
         .touch-btn:active { background: var(--neon-cyan); color: #000; }
-        .touch-btn.btn-spec { border-color: var(--neon-pink); color: var(--neon-pink); }
-        .touch-btn.btn-spec:active { background: var(--neon-pink); color: #000; }
-        .touch-btn.btn-bomb { border-color: var(--neon-yellow); color: var(--neon-yellow); }
-        .touch-btn.btn-bomb:active { background: var(--neon-yellow); color: #000; }
+        
+        .touch-btn-shoulder {
+            width: clamp(60px, 14vw, 80px);
+            height: clamp(32px, 8vw, 40px);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--neon-pink);
+            color: var(--neon-pink);
+            font-size: clamp(0.5rem, 1.2vw, 0.65rem);
+            font-family: var(--ui-font);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(255, 0, 127, 0.4);
+        }
+
+        .touch-btn-shoulder:active { background: var(--neon-pink); color: #000; }
     </style>
 </head>
 <body>
@@ -320,17 +374,25 @@
         <div id="dpad-zone" class="touch-zone">
             <div id="joystick-stick"></div>
         </div>
+        
+        <div id="shoulder-zone" class="touch-zone">
+            <div class="touch-btn-shoulder" id="t-btn-l1">L1:BOMB</div>
+            <div class="touch-btn-shoulder" id="t-btn-r1">R1:AGARRE</div>
+        </div>
+
         <div id="action-zone" class="touch-zone">
-            <div class="touch-btn" id="t-btn-atk">ATK</div>
-            <div class="touch-btn" id="t-btn-jmp">JMP</div>
-            <div class="touch-btn btn-spec" id="t-btn-combo">COMBO</div>
-            <div class="touch-btn btn-spec" id="t-btn-spec">CRIT</div>
-            <div class="touch-btn btn-bomb" id="t-btn-bomb">BOMB</div>
+            <div class="touch-btn" id="t-btn-x">X</div>
+            <div class="touch-btn" id="t-btn-y">Y</div>
+            <div class="touch-btn" id="t-btn-a">A</div>
+            <div class="touch-btn" id="t-btn-b">B</div>
         </div>
     </div>
 
+    <!-- PANTALLA DE INICIO ACTUALIZADA CON LOGO Y FONDO -->
     <div id="screen-intro" class="screen">
-        <h1>MARARARA<br><span style="font-size:0.4em; color:var(--neon-pink);">MI BARRIO EDITION</span></h1>
+        <img src="assets/title_logo.png" alt="MARARARA" class="title-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <h1 style="display:none;">MARARARA<br><span style="font-size:0.4em; color:var(--neon-pink);">MI BARRIO EDITION</span></h1>
+        
         <button class="btn" onclick="goToSelect()">PRESS START</button>
         <button class="btn btn-pink" onclick="toggleModal(true)">GUIA / CONTROLES</button>
     </div>
@@ -350,13 +412,14 @@
     </div>
 
     <div id="info-modal" class="modal hidden">
-        <h3 style="color:var(--neon-green); margin-bottom:15px; font-size:0.75rem;">MANDO / GAMEPAD CONTROLS</h3>
-        <p><b>Mover:</b> D-Pad / Stick Izquierdo</p>
-        <p><b>Golpe:</b> Botón A / ✖ (J)</p>
-        <p><b>Salto:</b> Botón B / 🔴 (K)</p>
-        <p><b>Combo Cadena:</b> Botón X / 🟦 (U)</p>
-        <p><b>Golpe Crítico:</b> Botón Y / 🔺 (I)</p>
-        <p><b>Bomba Neón (Hook KO):</b> R1 / RB (O)</p>
+        <h3 style="color:var(--neon-green); margin-bottom:15px; font-size:0.75rem;">MANDO / TECLADO CONTROLES</h3>
+        <p><b>Mover:</b> W,A,S,D / D-Pad</p>
+        <p><b>A (Golpe / Puño):</b> Tecla J / Botón A</p>
+        <p><b>B (Bloqueo):</b> Tecla K / Botón B</p>
+        <p><b>X (Patada Voladora / Salto):</b> Tecla U / Botón X</p>
+        <p><b>Y (Patada):</b> Tecla I / Botón Y</p>
+        <p><b>R1 (Agarre / Tirar):</b> Tecla O / Botón R1 <i>(Consume Stamina)</i></p>
+        <p><b>L1 (Bomba Neón Special):</b> Tecla P / Botón L1 <i>(Usa Barra Especial)</i></p>
         <br>
         <button class="btn btn-pink" style="width:100%; margin:0;" onclick="toggleModal(false)">CERRAR</button>
     </div>
@@ -371,9 +434,10 @@ const CANVAS_HEIGHT = 540;
 const STAGE_BOTTOM_Y = 510;
 const STAGE_TOP_Y = 310;
 
-const SPRITE_SIZE = 64;
+const BASE_SPRITE_SIZE = 64;
+const SPRITE_SCALE = 1.45;
+const RENDER_SPRITE_SIZE = BASE_SPRITE_SIZE * SPRITE_SCALE;
 const SPRITE_COLS = 4;
-const SPRITE_ROWS = 13;
 
 const ANIM_ROWS = {
     IDLE: 0,
@@ -390,6 +454,13 @@ const ANIM_ROWS = {
     KNOCKBACK: 11,
     DOWN: 12
 };
+
+/* CARGA DE ILUSTRACIONES DE FONDO */
+const bgFloorImg = new Image();
+bgFloorImg.src = 'assets/bg_floor.png';
+
+const bgEnvImg = new Image();
+bgEnvImg.src = 'assets/bg_environment.png';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -425,66 +496,22 @@ function toggleFullScreen() {
 }
 
 /* ==========================================================================
-   BASES DE DATOS DE PERSONAJES Y ENEMIGOS CON SPRITESHEETS INDIVIDUALES
+   PERSONAJES Y ENEMIGOS (CON SOPORTE DE RETRATOS EN ASSETS)
    ========================================================================== */
 const CHARACTERS_DB = [
-    { 
-        id: 0, name: "ALEX", 
-        spriteSrc: 'assets/Spritesheet-beatemUp-player.png', 
-        shirtColor: "#ffffff", pantsColor: "#0078f8", speed: 4.8, power: 14, hp: 100 
-    },
-    { 
-        id: 1, name: "RYAN", 
-        spriteSrc: 'assets/Spritesheet-ryan.png', 
-        shirtColor: "#0078f8", pantsColor: "#ffffff", speed: 5.8, power: 11, hp: 90 
-    },
-    { 
-        id: 2, name: "KUNIO", 
-        spriteSrc: 'assets/Spritesheet-kunio.png', 
-        shirtColor: "#ffffff", pantsColor: "#111111", speed: 4.2, power: 18, hp: 120 
-    },
-    { 
-        id: 3, name: "RIKI", 
-        spriteSrc: 'assets/Spritesheet-riki.png', 
-        shirtColor: "#00f3ff", pantsColor: "#111111", speed: 6.2, power: 10, hp: 85 
-    },
-    { 
-        id: 4, name: "SHINJI", 
-        spriteSrc: 'assets/Spritesheet-shinji.png', 
-        shirtColor: "#ff007f", pantsColor: "#0078f8", speed: 5.2, power: 13, hp: 95 
-    },
-    { 
-        id: 5, name: "GOUDA", 
-        spriteSrc: 'assets/Spritesheet-gouda.png', 
-        shirtColor: "#ffee00", pantsColor: "#ff0055", speed: 3.8, power: 22, hp: 140 
-    }
+    { id: 0, name: "LUCHO", spriteSrc: 'assets/Spritesheet-beatemUp-player.png', portraitSrc: 'assets/char_01_portrait.png', shirtColor: "#ffffff", pantsColor: "#0078f8", speed: 4.8, power: 14, hp: 100 },
+    { id: 1, name: "CLEO", spriteSrc: 'assets/Spritesheet-ryan.png', portraitSrc: 'assets/char_02_portrait.png', shirtColor: "#0078f8", pantsColor: "#ffffff", speed: 5.8, power: 11, hp: 90 },
+    { id: 2, name: "BORT", spriteSrc: 'assets/Spritesheet-kunio.png', portraitSrc: 'assets/char_03_portrait.png', shirtColor: "#ffffff", pantsColor: "#111111", speed: 4.2, power: 18, hp: 120 },
+    { id: 3, name: "DRAKO", spriteSrc: 'assets/Spritesheet-riki.png', portraitSrc: 'assets/char_04_portrait.png', shirtColor: "#00f3ff", pantsColor: "#111111", speed: 6.2, power: 10, hp: 85 },
+    { id: 4, name: "SANDRO", spriteSrc: 'assets/Spritesheet-shinji.png', portraitSrc: 'assets/char_05_portrait.png', shirtColor: "#ff007f", pantsColor: "#0078f8", speed: 5.2, power: 13, hp: 95 },
+    { id: 5, name: "NECO", spriteSrc: 'assets/Spritesheet-gouda.png', portraitSrc: 'assets/char_06_portrait.png', shirtColor: "#ffee00", pantsColor: "#ff0055", speed: 3.8, power: 22, hp: 140 }
 ];
 
 const ENEMIES_DB = {
-    PUNK: {
-        name: "PUNK",
-        spriteSrc: 'assets/Spritesheet-punk.png',
-        speed: 1.6, hp: 45, power: 7,
-        shirtColor: "#ff0055", pantsColor: "#111111"
-    },
-    CHASER: {
-        name: "CHASER",
-        spriteSrc: 'assets/Spritesheet-chaser.png',
-        speed: 2.2, hp: 35, power: 5,
-        shirtColor: "#ffee00", pantsColor: "#00ff66"
-    },
-    TANK: {
-        name: "TANK",
-        spriteSrc: 'assets/Spritesheet-tank.png',
-        speed: 1.1, hp: 120, power: 15,
-        shirtColor: "#9900ff", pantsColor: "#ffee00"
-    },
-    BOSS: {
-        name: "CYBER-LORD",
-        spriteSrc: 'assets/Spritesheet-boss.png',
-        speed: 1.4, hp: 250, power: 18,
-        shirtColor: "#ff0000", pantsColor: "#000000"
-    }
+    PUNK: { name: "PUNK", spriteSrc: 'assets/Spritesheet-punk.png', speed: 1.6, hp: 45, power: 7, shirtColor: "#ff0055", pantsColor: "#111111" },
+    CHASER: { name: "CHASER", spriteSrc: 'assets/Spritesheet-chaser.png', speed: 2.2, hp: 35, power: 5, shirtColor: "#ffee00", pantsColor: "#00ff66" },
+    TANK: { name: "TANK", spriteSrc: 'assets/Spritesheet-tank.png', speed: 1.1, hp: 120, power: 15, shirtColor: "#9900ff", pantsColor: "#ffee00" },
+    BOSS: { name: "CYBER-LORD", spriteSrc: 'assets/Spritesheet-boss.png', speed: 1.4, hp: 250, power: 18, shirtColor: "#ff0000", pantsColor: "#000000" }
 };
 
 let selectedCharIndex = 0;
@@ -502,6 +529,9 @@ let cameraShakeIntensity = 0;
 
 let glitchTime = 0;
 
+let specialEnergy = 0; 
+const MAX_SPECIAL_ENERGY = 100;
+
 let player = null;
 let enemies = [];
 let particles = [];
@@ -512,7 +542,7 @@ let shockwaves = [];
    CONTROLES DE ENTRADA
    ========================================================================== */
 const keys = {};
-const touchInput = { x: 0, y: 0, atk: false, jmp: false, combo: false, spec: false, bomb: false };
+const touchInput = { x: 0, y: 0, btnA: false, btnB: false, btnX: false, btnY: false, btnR1: false, btnL1: false };
 let isTouchDevice = false;
 
 window.addEventListener('keydown', e => { keys[e.code] = true; });
@@ -566,11 +596,8 @@ function updateJoystick(touch) {
         dy = (dy / dist) * maxDist;
     }
 
-    const percentX = (dx / maxDist) * 30 + 30;
-    const percentY = (dy / maxDist) * 30 + 30;
-
-    joystickStick.style.left = percentX + '%';
-    joystickStick.style.top = percentY + '%';
+    joystickStick.style.left = ((dx / maxDist) * 30 + 30) + '%';
+    joystickStick.style.top = ((dy / maxDist) * 30 + 30) + '%';
     touchInput.x = dx / maxDist;
     touchInput.y = dy / maxDist;
 }
@@ -580,51 +607,54 @@ function bindTouchBtn(id, prop) {
     btn.addEventListener('touchstart', (e) => { e.preventDefault(); touchInput[prop] = true; });
     btn.addEventListener('touchend', (e) => { e.preventDefault(); touchInput[prop] = false; });
 }
-bindTouchBtn('t-btn-atk', 'atk');
-bindTouchBtn('t-btn-jmp', 'jmp');
-bindTouchBtn('t-btn-combo', 'combo');
-bindTouchBtn('t-btn-spec', 'spec');
-bindTouchBtn('t-btn-bomb', 'bomb');
+bindTouchBtn('t-btn-a', 'btnA');
+bindTouchBtn('t-btn-b', 'btnB');
+bindTouchBtn('t-btn-x', 'btnX');
+bindTouchBtn('t-btn-y', 'btnY');
+bindTouchBtn('t-btn-r1', 'btnR1');
+bindTouchBtn('t-btn-l1', 'btnL1');
 
 function getInputs() {
-    let input = { x: 0, y: 0, atk: false, jmp: false, combo: false, spec: false, bomb: false };
+    let input = { x: 0, y: 0, btnA: false, btnB: false, btnX: false, btnY: false, btnR1: false, btnL1: false };
 
     if (keys['KeyA'] || keys['ArrowLeft']) input.x -= 1;
     if (keys['KeyD'] || keys['ArrowRight']) input.x += 1;
     if (keys['KeyW'] || keys['ArrowUp']) input.y -= 1;
     if (keys['KeyS'] || keys['ArrowDown']) input.y += 1;
-    if (keys['KeyJ']) input.atk = true;
-    if (keys['KeyK']) input.jmp = true;
-    if (keys['KeyU']) input.combo = true;
-    if (keys['KeyI']) input.spec = true;
-    if (keys['KeyO']) input.bomb = true;
+    
+    if (keys['KeyJ']) input.btnA = true;
+    if (keys['KeyK']) input.btnB = true;
+    if (keys['KeyU']) input.btnX = true;
+    if (keys['KeyI']) input.btnY = true;
+    if (keys['KeyO']) input.btnR1 = true;
+    if (keys['KeyP']) input.btnL1 = true;
 
     if (touchInput.x !== 0 || touchInput.y !== 0) { input.x = touchInput.x; input.y = touchInput.y; }
-    if (touchInput.atk) input.atk = true;
-    if (touchInput.jmp) input.jmp = true;
-    if (touchInput.combo) input.combo = true;
-    if (touchInput.spec) input.spec = true;
-    if (touchInput.bomb) input.bomb = true;
+    if (touchInput.btnA) input.btnA = true;
+    if (touchInput.btnB) input.btnB = true;
+    if (touchInput.btnX) input.btnX = true;
+    if (touchInput.btnY) input.btnY = true;
+    if (touchInput.btnR1) input.btnR1 = true;
+    if (touchInput.btnL1) input.btnL1 = true;
 
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (let i = 0; i < gamepads.length; i++) {
         const gp = gamepads[i];
         if (gp && gp.connected) {
-            const axisX = gp.axes[0];
-            const axisY = gp.axes[1];
-            if (Math.abs(axisX) > 0.2) input.x = axisX;
-            if (Math.abs(axisY) > 0.2) input.y = axisY;
+            if (Math.abs(gp.axes[0]) > 0.2) input.x = gp.axes[0];
+            if (Math.abs(gp.axes[1]) > 0.2) input.y = gp.axes[1];
 
             if (gp.buttons[14] && gp.buttons[14].pressed) input.x = -1;
             if (gp.buttons[15] && gp.buttons[15].pressed) input.x = 1;
             if (gp.buttons[12] && gp.buttons[12].pressed) input.y = -1;
             if (gp.buttons[13] && gp.buttons[13].pressed) input.y = 1;
 
-            if (gp.buttons[0] && gp.buttons[0].pressed) input.atk = true;
-            if (gp.buttons[1] && gp.buttons[1].pressed) input.jmp = true;
-            if (gp.buttons[2] && gp.buttons[2].pressed) input.combo = true;
-            if (gp.buttons[3] && gp.buttons[3].pressed) input.spec = true;
-            if ((gp.buttons[5] && gp.buttons[5].pressed) || (gp.buttons[7] && gp.buttons[7].pressed)) input.bomb = true;
+            if (gp.buttons[0] && gp.buttons[0].pressed) input.btnA = true;
+            if (gp.buttons[1] && gp.buttons[1].pressed) input.btnB = true;
+            if (gp.buttons[2] && gp.buttons[2].pressed) input.btnX = true;
+            if (gp.buttons[3] && gp.buttons[3].pressed) input.btnY = true;
+            if (gp.buttons[5] && gp.buttons[5].pressed) input.btnR1 = true;
+            if (gp.buttons[4] && gp.buttons[4].pressed) input.btnL1 = true;
         }
     }
 
@@ -704,6 +734,8 @@ class SpriteManager {
             frameIndex = 0;
         } else if (entity.hurtTimer > 0) {
             row = ANIM_ROWS.KNOCKBACK;
+        } else if (entity.isBlocking) {
+            row = ANIM_ROWS.GET_HIT;
         } else if (entity.z > 0) {
             row = ANIM_ROWS.JUMP_KICK;
         } else if (entity.isAttacking) {
@@ -711,7 +743,8 @@ class SpriteManager {
             if (attackType === 'HOOK') row = ANIM_ROWS.HOOK;
             else if (attackType === 'HIGH_KICK') row = ANIM_ROWS.HIGH_KICK;
             else if (attackType === 'LOW_KICK') row = ANIM_ROWS.LOW_KICK;
-            else if (attackType === 'STRAIGHT_PUNCH') row = ANIM_ROWS.STRAIGHT_PUNCH;
+            else if (attackType === 'GRAB_THROW') row = ANIM_ROWS.GRAB_THROW;
+            else if (attackType === 'JUMP_KICK') row = ANIM_ROWS.JUMP_KICK;
             else row = ANIM_ROWS.JAB;
         } else if (entity.isMoving) {
             row = (Math.abs(entity.vx || 1) > 5) ? ANIM_ROWS.RUN : ANIM_ROWS.WALK;
@@ -719,14 +752,14 @@ class SpriteManager {
 
         const sourceImage = getTintedSpriteSheet(entity.spriteSheet, entity.shirtColor, entity.pantsColor);
 
-        const sx = frameIndex * SPRITE_SIZE;
-        const sy = row * SPRITE_SIZE;
+        const sx = frameIndex * BASE_SPRITE_SIZE;
+        const sy = row * BASE_SPRITE_SIZE;
 
         if (sourceImage) {
             ctx.drawImage(
                 sourceImage,
-                sx, sy, SPRITE_SIZE, SPRITE_SIZE,
-                -SPRITE_SIZE / 2, -SPRITE_SIZE + 6, SPRITE_SIZE, SPRITE_SIZE
+                sx, sy, BASE_SPRITE_SIZE, BASE_SPRITE_SIZE,
+                -RENDER_SPRITE_SIZE / 2, -RENDER_SPRITE_SIZE + (8 * SPRITE_SCALE), RENDER_SPRITE_SIZE, RENDER_SPRITE_SIZE
             );
         }
 
@@ -735,16 +768,17 @@ class SpriteManager {
 }
 
 /* ==========================================================================
-   CLASES DE ENTIDAD (JUGADOR Y ENEMIGOS)
+   CLASES DE ENTIDAD Y HITBOXES PROPORCIONALES
    ========================================================================== */
 class Entity {
     constructor(x, y, spriteSrc) {
         this.x = x; this.y = y; this.z = 0; this.vz = 0;
-        this.radius = 22;
+        this.radius = 22 * SPRITE_SCALE;
         this.facing = 1;
         this.hp = 100; this.maxHp = 100;
         this.name = "ENTIDAD";
         this.isAttacking = false;
+        this.isBlocking = false;
         this.isMoving = false;
         this.attackTimer = 0;
         this.hurtTimer = 0;
@@ -763,11 +797,11 @@ class Entity {
 
     get Hurtbox() {
         return {
-            x: this.x - 22,
-            y: this.y - 50,
+            x: this.x - (22 * SPRITE_SCALE),
+            y: this.y - (50 * SPRITE_SCALE),
             z: this.z,
-            w: 44,
-            h: 50
+            w: 44 * SPRITE_SCALE,
+            h: 50 * SPRITE_SCALE
         };
     }
 }
@@ -783,8 +817,6 @@ class PlayerEntity extends Entity {
         this.pantsColor = charData.pantsColor;
         this.stamina = 100; this.maxStamina = 100;
         this.lives = 3;
-        this.comboStep = 0;
-        this.comboTimer = 0;
 
         this.isKnockedDown = false;
         this.respawnTimer = 0;
@@ -793,7 +825,6 @@ class PlayerEntity extends Entity {
     update(input) {
         if (this.isKnockedDown) {
             this.respawnTimer--;
-
             if (this.respawnTimer <= 0) {
                 this.lives--;
                 if (this.lives <= 0) {
@@ -802,7 +833,7 @@ class PlayerEntity extends Entity {
                     this.isKnockedDown = false;
                     this.hp = this.maxHp;
                     this.hurtTimer = 60;
-                    createFloatingText("RESPAWN!", this.x, this.y - 50, '#00ff66');
+                    createFloatingText("RESPAWN!", this.x, this.y - 60, '#00ff66');
                 }
             }
             return;
@@ -811,18 +842,19 @@ class PlayerEntity extends Entity {
         if (this.hurtTimer > 0) this.hurtTimer--;
         if (this.stamina < this.maxStamina) this.stamina += 0.35;
 
-        this.isMoving = (input.x !== 0 || input.y !== 0);
+        this.isBlocking = input.btnB && !this.isAttacking && this.z === 0;
 
-        if (!this.isAttacking) {
+        if (!this.isAttacking && !this.isBlocking) {
+            this.isMoving = (input.x !== 0 || input.y !== 0);
             this.x += input.x * this.speed;
             this.y += input.y * (this.speed * 0.7);
             if (input.x !== 0) this.facing = Math.sign(input.x);
+        } else {
+            this.isMoving = false;
         }
 
         this.y = Math.max(STAGE_TOP_Y, Math.min(STAGE_BOTTOM_Y, this.y));
         this.x = Math.max(cameraX + 20, Math.min(cameraX + CANVAS_WIDTH - 20, this.x));
-
-        if (input.jmp && this.z === 0) this.vz = 10.5;
 
         if (this.z > 0 || this.vz !== 0) {
             this.z += this.vz;
@@ -830,29 +862,33 @@ class PlayerEntity extends Entity {
             if (this.z <= 0) { this.z = 0; this.vz = 0; }
         }
 
-        if (this.comboTimer > 0) this.comboTimer--;
-        else this.comboStep = 0;
-
         if (this.isAttacking) {
             this.attackTimer--;
             if (this.attackTimer <= 0) {
                 this.isAttacking = false;
                 this.hitbox = null;
             }
-        } else {
-            if (input.atk) this.performAttack('BASIC');
-            else if (input.combo && this.stamina >= 25) this.performAttack('CHAIN');
-            else if (input.spec && this.stamina >= 45) this.performAttack('ONE_HIT');
-            else if (input.bomb && this.stamina >= 75) this.performAttack('BOMB');
+        } else if (!this.isBlocking) {
+            if (input.btnA) this.performAttack('JAB');
+            else if (input.btnY) this.performAttack('HIGH_KICK');
+            else if (input.btnX) this.performAttack('FLYING_KICK');
+            else if (input.btnR1 && this.stamina >= 30) this.performAttack('GRAB');
+            else if (input.btnL1 && specialEnergy >= MAX_SPECIAL_ENERGY) this.performAttack('SPECIAL_BOMB');
         }
     }
 
     takeDamage(damage) {
+        if (this.isBlocking) {
+            damage *= 0.2;
+            createFloatingText("BLOCK!", this.x, this.y - 50, '#00f3ff');
+        } else {
+            this.hurtTimer = 25;
+            triggerCameraShake(8, 10);
+            createExplosion(this.x, this.y - 20, '#ff0000');
+            createFloatingText("-" + Math.floor(damage), this.x, this.y - 50, '#ff0000');
+        }
+
         this.hp -= damage;
-        this.hurtTimer = 25;
-        triggerCameraShake(8, 10);
-        createExplosion(this.x, this.y - 20, '#ff0000');
-        createFloatingText("-" + damage, this.x, this.y - 40, '#ff0000');
 
         if (this.hp <= 0 && !this.isKnockedDown) {
             this.hp = 0;
@@ -860,73 +896,56 @@ class PlayerEntity extends Entity {
             this.respawnTimer = 180;
             this.isAttacking = false;
             this.hitbox = null;
-            createFloatingText("DOWN!!", this.x, this.y - 60, '#ff0055');
+            createFloatingText("DOWN!!", this.x, this.y - 70, '#ff0055');
         }
     }
 
     performAttack(type) {
         this.isAttacking = true;
+        this.currentAttackType = type;
 
-        if (type === 'BASIC') {
-            this.attackTimer = 14;
-            this.comboStep = (this.comboStep % 3) + 1;
-            this.comboTimer = 35;
-
-            const attacks = ['JAB', 'STRAIGHT_PUNCH', 'HIGH_KICK'];
-            this.currentAttackType = attacks[this.comboStep - 1];
-
-            this.hitbox = { offsetX: 10, w: 65, h: 50, damage: this.power, type: 'NORMAL' };
-        } else if (type === 'CHAIN') {
-            this.stamina -= 25;
-            this.attackTimer = 18;
-            this.currentAttackType = 'HIGH_KICK';
-            this.hitbox = { offsetX: 5, w: 80, h: 55, damage: this.power * 2.2, type: 'CHAIN' };
-            triggerCameraShake(6, 8);
-        } else if (type === 'ONE_HIT') {
-            this.stamina -= 45;
+        if (type === 'JAB') {
+            this.attackTimer = 12;
+            this.hitbox = { offsetX: 10 * SPRITE_SCALE, w: 60 * SPRITE_SCALE, h: 45 * SPRITE_SCALE, damage: this.power };
+        } else if (type === 'HIGH_KICK') {
+            this.attackTimer = 16;
+            this.hitbox = { offsetX: 12 * SPRITE_SCALE, w: 70 * SPRITE_SCALE, h: 50 * SPRITE_SCALE, damage: this.power * 1.4 };
+        } else if (type === 'FLYING_KICK') {
+            this.vz = 7;
+            this.attackTimer = 20;
+            this.currentAttackType = 'JUMP_KICK';
+            this.hitbox = { offsetX: 15 * SPRITE_SCALE, w: 80 * SPRITE_SCALE, h: 55 * SPRITE_SCALE, damage: this.power * 1.8 };
+        } else if (type === 'GRAB') {
+            this.stamina -= 30;
             this.attackTimer = 22;
-            this.currentAttackType = 'HOOK';
-            this.hitbox = { offsetX: 15, w: 75, h: 50, damage: 160, type: 'ONE_HIT' };
-            triggerCameraShake(10, 12);
-        } else if (type === 'BOMB') {
-            this.stamina -= 75;
+            this.currentAttackType = 'GRAB_THROW';
+            this.hitbox = { offsetX: 8 * SPRITE_SCALE, w: 50 * SPRITE_SCALE, h: 50 * SPRITE_SCALE, damage: this.power * 2.5, isGrab: true };
+        } else if (type === 'SPECIAL_BOMB') {
+            specialEnergy = 0;
             this.attackTimer = 35;
             this.currentAttackType = 'HOOK';
 
-            triggerGlitch(18);
-            triggerCameraShake(18, 20);
+            triggerGlitch(25);
+            triggerCameraShake(22, 25);
 
             shockwaves.push({
                 x: this.x,
                 y: this.y - 20,
                 radius: 10,
-                maxRadius: 280,
+                maxRadius: 340,
                 color: '#ffee00',
-                life: 20
+                life: 25
             });
 
             enemies.forEach(e => {
                 if (e.hp > 0) {
-                    e.hp -= 150;
-                    e.hurtTimer = 35;
+                    e.takeDamage(180, true);
                     createExplosion(e.x, e.y - 20, '#ffee00');
-                    if (e.hp <= 0) e.triggerKnockdown();
                 }
             });
 
-            createFloatingText("HOOK NEON BOMB!!", this.x, this.y - 65, '#ffee00');
+            createFloatingText("NEON OVERLOAD!!", this.x, this.y - 80, '#ffee00');
         }
-    }
-
-    triggerKOAttack(target) {
-        this.isAttacking = true;
-        this.attackTimer = 25;
-        this.currentAttackType = 'HOOK';
-        this.hitbox = { offsetX: 15, w: 90, h: 60, damage: 250, type: 'KO' };
-        triggerGlitch(10);
-        triggerCameraShake(16, 18);
-        createExplosion(target.x, target.y - 20, '#ffee00');
-        createFloatingText("FINISH KO!!", target.x, target.y - 70, '#ff0055');
     }
 }
 
@@ -952,14 +971,22 @@ class EnemyEntity extends Entity {
         if (this.isBoss) {
             const bossSkins = ['#ff0000', '#00ff66', '#00f3ff', '#ffffff'];
             this.shirtColor = bossSkins[level % bossSkins.length];
-            this.radius = 28;
+            this.radius = 28 * SPRITE_SCALE;
         } else if (typeKey === 'TANK') {
-            this.radius = 26;
+            this.radius = 26 * SPRITE_SCALE;
         }
 
         this.maxHp = this.hp;
         this.isKnockedDown = false;
         this.despawnTimer = 0;
+    }
+
+    takeDamage(damage, ignoreShield = false) {
+        this.hp -= damage;
+        this.hurtTimer = 12;
+        if (this.hp <= 0) {
+            this.triggerKnockdown();
+        }
     }
 
     triggerKnockdown() {
@@ -969,9 +996,17 @@ class EnemyEntity extends Entity {
             this.isAttacking = false;
             this.isMoving = false;
             this.hitbox = null;
-            this.despawnTimer = 120;
+            this.despawnTimer = 90;
+            
+            specialEnergy = Math.min(MAX_SPECIAL_ENERGY, specialEnergy + (this.isBoss ? 50 : 25));
+            if (specialEnergy >= MAX_SPECIAL_ENERGY) {
+                triggerCameraShake(12, 15);
+                triggerGlitch(15);
+                createFloatingText("SPECIAL READY!!", player.x, player.y - 80, '#ffee00');
+            }
+
             createExplosion(this.x, this.y - 20, '#ff0055');
-            createFloatingText("K.O.", this.x, this.y - 50, '#ff0055');
+            createFloatingText("K.O.", this.x, this.y - 60, '#ff0055');
         }
     }
 
@@ -1009,19 +1044,19 @@ class EnemyEntity extends Entity {
         this.facing = dx >= 0 ? 1 : -1;
         this.isMoving = Math.abs(dx) > 40 || Math.abs(dy) > 5;
 
-        if (Math.abs(dx) > 45) {
+        if (Math.abs(dx) > 50) {
             this.x += Math.sign(dx) * this.speed;
             if (Math.abs(dy) > 5) this.y += Math.sign(dy) * (this.speed * 0.7);
         } else {
             if (Math.abs(directDy) > 15) {
                 this.y += Math.sign(directDy) * (this.speed * 0.8);
             } else {
-                if (dist < 55 && this.attackCooldown <= 0 && this.hurtTimer <= 0) {
+                if (dist < (60 * SPRITE_SCALE) && this.attackCooldown <= 0 && this.hurtTimer <= 0) {
                     this.isAttacking = true;
                     this.attackTimer = 16;
                     this.currentAttackType = (Math.random() > 0.5) ? 'JAB' : 'LOW_KICK';
                     this.attackCooldown = 90 + Math.random() * 40;
-                    this.hitbox = { offsetX: 8, w: 45, h: 40, damage: this.power };
+                    this.hitbox = { offsetX: 8 * SPRITE_SCALE, w: 45 * SPRITE_SCALE, h: 40 * SPRITE_SCALE, damage: this.power };
                 }
             }
         }
@@ -1058,7 +1093,7 @@ function resolvePhysicalCollisions() {
 }
 
 /* ==========================================================================
-   EFECTOS VISUALES Y CÁMARA (GLITCH / SHAKE)
+   EFECTOS VISUALES Y CÁMARA
    ========================================================================== */
 function triggerCameraShake(intensity, duration) {
     cameraShakeIntensity = intensity;
@@ -1104,7 +1139,7 @@ function applyGlitchEffect() {
 }
 
 /* ==========================================================================
-   LOOP DE JUEGO Y LÓGICA DE ONDAS
+   LOOP Y LÓGICA DE JUEGO
    ========================================================================== */
 function updateGame() {
     if (gameState !== 'GAME') return;
@@ -1129,28 +1164,21 @@ function updateGame() {
         enemies.forEach(enemy => {
             if (!enemy.isKnockedDown && enemy.hurtTimer <= 0 && checkHitboxCollision(player, player.hitbox, enemy.Hurtbox)) {
                 
-                enemy.hitComboCount++;
                 let damageToApply = player.hitbox.damage;
 
-                if (enemy.hitComboCount >= 5) {
-                    damageToApply *= 2.5;
-                    player.triggerKOAttack(enemy);
-                    enemy.hitComboCount = 0;
-                    enemy.triggerKnockdown();
-                    score += enemy.isBoss ? 2500 : 600;
-                } else {
-                    enemy.hp -= damageToApply;
-                    enemy.hurtTimer = 10;
-                    score += 150;
-                    triggerCameraShake(4, 6);
-                    createExplosion(enemy.x, enemy.y - 20, '#00f3ff');
-                    createFloatingText(Math.floor(damageToApply).toString() + (enemy.hitComboCount >= 4 ? " COMBO!" : ""), enemy.x, enemy.y - 40, '#ffee00');
-
-                    if (enemy.hp <= 0) {
-                        enemy.triggerKnockdown();
-                        score += enemy.isBoss ? 2500 : 600;
-                    }
+                if (player.hitbox.isGrab) {
+                    enemy.x += player.facing * (50 * SPRITE_SCALE);
+                    triggerCameraShake(8, 10);
+                    createFloatingText("THROW!", enemy.x, enemy.y - 60, '#ffee00');
                 }
+
+                enemy.takeDamage(damageToApply);
+                score += 150;
+                triggerCameraShake(4, 6);
+                createExplosion(enemy.x, enemy.y - 20, '#00f3ff');
+                createFloatingText(Math.floor(damageToApply).toString(), enemy.x, enemy.y - 50, '#ffee00');
+
+                if (enemy.hp <= 0) score += enemy.isBoss ? 2500 : 600;
             }
         });
     }
@@ -1193,7 +1221,7 @@ function checkHitboxCollision(attacker, hitbox, targetHurtbox) {
     const hx = attacker.facing === 1 ? attacker.x + hitbox.offsetX : attacker.x - hitbox.offsetX - hitbox.w;
     const hy = attacker.y - attacker.z - hitbox.h / 2;
 
-    if (Math.abs(attacker.y - targetHurtbox.y) > 50) return false;
+    if (Math.abs(attacker.y - targetHurtbox.y) > (50 * SPRITE_SCALE)) return false;
 
     return (
         hx < targetHurtbox.x + targetHurtbox.w &&
@@ -1221,7 +1249,7 @@ function spawnWave() {
 }
 
 /* ==========================================================================
-   RENDERIZADO DE ESCENARIO Y HUD
+   RENDERIZADO DE ESCENARIO Y HUD CON IMÁGENES
    ========================================================================== */
 function renderGame() {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -1231,7 +1259,7 @@ function renderGame() {
         ctx.translate((Math.random() - 0.5) * cameraShakeIntensity, (Math.random() - 0.5) * cameraShakeIntensity);
     }
 
-    drawImprovedStage();
+    drawIllustratedStage();
 
     shockwaves.forEach(sw => {
         ctx.save();
@@ -1272,50 +1300,38 @@ function renderGame() {
     drawGameHUD();
 }
 
-function drawImprovedStage() {
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, STAGE_TOP_Y);
-    skyGrad.addColorStop(0, '#04020a');
-    skyGrad.addColorStop(1, '#180a2a');
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, CANVAS_WIDTH, STAGE_TOP_Y);
-
-    ctx.fillStyle = '#0c071b';
-    const bgOffset = -(cameraX * 0.15);
-    for (let i = -2; i < 15; i++) {
-        const bx = i * 90 + (bgOffset % 90);
-        const bh = 80 + (Math.sin(i * 1.5) * 40);
-        ctx.fillRect(bx, STAGE_TOP_Y - bh, 70, bh);
-
-        ctx.fillStyle = (i % 2 === 0) ? '#ff007f' : '#00f3ff';
-        ctx.fillRect(bx + 15, STAGE_TOP_Y - bh + 15, 8, 12);
-        ctx.fillRect(bx + 40, STAGE_TOP_Y - bh + 35, 8, 12);
-        ctx.fillStyle = '#0c071b';
+function drawIllustratedStage() {
+    /* Fondo con Paralaje */
+    if (bgEnvImg.complete && bgEnvImg.naturalWidth !== 0) {
+        const envParallax = (cameraX * 0.3) % CANVAS_WIDTH;
+        ctx.drawImage(bgEnvImg, -envParallax, 0, CANVAS_WIDTH, STAGE_TOP_Y);
+        ctx.drawImage(bgEnvImg, CANVAS_WIDTH - envParallax, 0, CANVAS_WIDTH, STAGE_TOP_Y);
+    } else {
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, STAGE_TOP_Y);
+        skyGrad.addColorStop(0, '#04020a');
+        skyGrad.addColorStop(1, '#180a2a');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, CANVAS_WIDTH, STAGE_TOP_Y);
     }
 
-    ctx.fillStyle = '#221533';
-    ctx.fillRect(0, STAGE_TOP_Y - 12, CANVAS_WIDTH, 12);
-    ctx.fillStyle = '#ff007f';
-    ctx.fillRect(0, STAGE_TOP_Y - 2, CANVAS_WIDTH, 2);
-
-    const streetGrad = ctx.createLinearGradient(0, STAGE_TOP_Y, 0, STAGE_BOTTOM_Y);
-    streetGrad.addColorStop(0, '#120d1f');
-    streetGrad.addColorStop(1, '#080511');
-    ctx.fillStyle = streetGrad;
-    ctx.fillRect(0, STAGE_TOP_Y, CANVAS_WIDTH, STAGE_BOTTOM_Y - STAGE_TOP_Y);
-
-    ctx.strokeStyle = 'rgba(0, 243, 255, 0.15)';
-    ctx.lineWidth = 2;
-    const floorOffset = -(cameraX) % 50;
-    for (let x = floorOffset; x < CANVAS_WIDTH; x += 50) {
-        ctx.beginPath();
-        ctx.moveTo(x, STAGE_TOP_Y); ctx.lineTo(x - 30, STAGE_BOTTOM_Y);
-        ctx.stroke();
+    /* Piso Repetitivo */
+    if (bgFloorImg.complete && bgFloorImg.naturalWidth !== 0) {
+        const floorScroll = cameraX % CANVAS_WIDTH;
+        const floorHeight = CANVAS_HEIGHT - STAGE_TOP_Y;
+        ctx.drawImage(bgFloorImg, -floorScroll, STAGE_TOP_Y, CANVAS_WIDTH, floorHeight);
+        ctx.drawImage(bgFloorImg, CANVAS_WIDTH - floorScroll, STAGE_TOP_Y, CANVAS_WIDTH, floorHeight);
+    } else {
+        const streetGrad = ctx.createLinearGradient(0, STAGE_TOP_Y, 0, STAGE_BOTTOM_Y);
+        streetGrad.addColorStop(0, '#120d1f');
+        streetGrad.addColorStop(1, '#080511');
+        ctx.fillStyle = streetGrad;
+        ctx.fillRect(0, STAGE_TOP_Y, CANVAS_WIDTH, STAGE_BOTTOM_Y - STAGE_TOP_Y);
     }
 }
 
 function drawEntityHUD(entity) {
     const screenX = entity.x - cameraX;
-    const screenY = entity.y - entity.z - 72;
+    const screenY = entity.y - entity.z - (RENDER_SPRITE_SIZE + 10);
 
     ctx.save();
     ctx.font = '6px "Press Start 2P"';
@@ -1324,7 +1340,7 @@ function drawEntityHUD(entity) {
     ctx.fillStyle = entity === player ? '#00ff66' : (entity.isBoss ? '#ff0055' : '#ffee00');
     ctx.fillText(entity.name, screenX, screenY - 6);
 
-    const barW = 42; const barH = 5;
+    const barW = 48; const barH = 5;
     ctx.fillStyle = 'rgba(0,0,0,0.8)';
     ctx.fillRect(screenX - barW / 2, screenY, barW, barH);
 
@@ -1355,22 +1371,33 @@ function drawGameHUD() {
     ctx.fillStyle = '#ff0055';
     ctx.fillText("LIVES:" + player.lives, CANVAS_WIDTH - 20, 50);
 
+    /* Barra de Stamina */
     ctx.textAlign = 'left';
     ctx.font = '7px "Press Start 2P"';
     ctx.fillStyle = '#00f3ff';
     ctx.fillText("STAMINA", 20, 50);
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(20, 56, 150, 8);
+    ctx.fillRect(20, 56, 120, 7);
     ctx.fillStyle = '#00f3ff';
-    ctx.fillRect(20, 56, (player.stamina / player.maxStamina) * 150, 8);
+    ctx.fillRect(20, 56, (player.stamina / player.maxStamina) * 120, 7);
     ctx.strokeStyle = '#00f3ff';
-    ctx.strokeRect(20, 56, 150, 8);
+    ctx.strokeRect(20, 56, 120, 7);
+
+    /* Barra de Especial (L1) */
+    ctx.fillStyle = '#ffee00';
+    ctx.fillText("SPECIAL", 20, 72);
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(20, 78, 120, 7);
+    ctx.fillStyle = specialEnergy >= MAX_SPECIAL_ENERGY ? '#ffee00' : '#ff007f';
+    ctx.fillRect(20, 78, (specialEnergy / MAX_SPECIAL_ENERGY) * 120, 7);
+    ctx.strokeStyle = '#ffee00';
+    ctx.strokeRect(20, 78, 120, 7);
 
     ctx.restore();
 }
 
 /* ==========================================================================
-   INTERFAZ DE USUARIO Y NAVEGACIÓN
+   INTERFAZ DE USUARIO Y SELECCIÓN DE PERSONAJES
    ========================================================================== */
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
@@ -1390,10 +1417,14 @@ function setupCharGrid() {
         const card = document.createElement('div');
         card.className = `char-card ${index === selectedCharIndex ? 'selected' : ''}`;
         card.onclick = () => { selectedCharIndex = index; setupCharGrid(); };
+        
+        const portraitMarkup = `<img src="${char.portraitSrc}" class="char-portrait" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="char-avatar-fallback" style="display:none; background:${char.shirtColor}; color:#000;">${char.name[0]}</div>`;
+
         card.innerHTML = `
-            <div class="char-avatar" style="background:${char.shirtColor}; color:#000;">${char.name[0]}</div>
+            ${portraitMarkup}
             <div style="font-size:0.55rem; font-weight:bold; color:#fff">${char.name}</div>
-            <div style="font-size:0.4rem; margin-top:6px; color:var(--neon-cyan)">SPD:${char.speed} PWR:${char.power}</div>
+            <div style="font-size:0.4rem; margin-top:4px; color:var(--neon-cyan)">SPD:${char.speed} PWR:${char.power}</div>
         `;
         grid.appendChild(card);
     });
@@ -1405,7 +1436,7 @@ function startGame() {
 
     player = new PlayerEntity(100, 400, charData, customName);
     enemies = []; particles = []; floatingTexts = []; shockwaves = [];
-    score = 0; currentBlock = 1; cameraX = 0;
+    score = 0; currentBlock = 1; cameraX = 0; specialEnergy = 0;
 
     showScreen(null);
     gameState = 'GAME';
