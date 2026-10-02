@@ -278,23 +278,28 @@
         /* ESTILOS DE LA SECCIÓN DE HISTORIA / PRESENTACIÓN PPT */
         #screen-story {
             background: rgba(5, 5, 12, 0.98);
-            justify-content: space-between;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             padding: 15px;
         }
 
         .story-header {
             width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 10px;
+            max-width: 500px;
+            text-align: center;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 150;
         }
 
+        /* CUADRO DE VIÑETA 1024 x 1024 (1:1 PROPORCIÓN RESPONSIVE) */
         .story-container {
             position: relative;
             width: 100%;
-            max-width: 720px;
-            height: 62vh;
+            max-width: min(58vh, 480px); /* Ajuste dinámico de escala manteniendo 1:1 */
+            aspect-ratio: 1 / 1;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -302,14 +307,31 @@
             box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
             background: #000;
             border-radius: 6px;
-            overflow: hidden;
+            overflow: visible; /* Permite posicionar el botón sobre el borde */
+            margin: 15px 0;
         }
 
         .story-img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             image-rendering: pixelated;
+            border-radius: 3px;
+        }
+
+        /* BOTÓN SKIP UBICADO EN EL BORDE CENTRAL SUPERIOR DEL CUADRO */
+        .btn-skip {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            padding: 8px 16px !important;
+            font-size: clamp(0.55rem, 1.5vw, 0.7rem) !important;
+            margin: 0 !important;
+            touch-action: manipulation;
+            box-shadow: 0 0 10px var(--neon-pink), 3px 3px 0px #000 !important;
+            white-space: nowrap;
         }
 
         .story-controls {
@@ -459,9 +481,9 @@
     <div id="screen-story" class="screen hidden">
         <div class="story-header">
             <h2 id="story-slide-title">HISTORIA del BARRIO (1/6)</h2>
-            <button class="btn btn-pink" style="padding:6px 12px; font-size:0.55rem; margin:0;" onclick="launchActualGameplay()">SKIP ⏭</button>
         </div>
         <div class="story-container">
+            <button class="btn btn-pink btn-skip" onclick="launchActualGameplay()">SKIP ⏭</button>
             <img id="story-image" class="story-img" src="assets/story_01.png" alt="Historia Viñeta" onerror="this.style.display='none'; document.getElementById('story-fallback-text').style.display='block';">
             <div id="story-fallback-text" style="display:none; text-align:center; padding:20px; color:var(--neon-cyan);">
                 <p id="story-text-desc" style="font-size:0.75rem; line-height:1.8;">Cargando viñeta de historia...</p>
@@ -1042,14 +1064,11 @@ function getTintedSpriteSheet(image, shirtColor, pantsColor) {
 
             if (a === 0) continue;
 
-            // DETECCIÓN CHROMA KEY: Busca el color verde fluorescente (#0DFF00 / #00FF00) para la camisa
-            // Esto evita alterar el color blanco de las caras y máscaras.
             if (r < 30 && g > 230 && b < 30) {
                 data[i]     = sRgb[0]; 
                 data[i + 1] = sRgb[1]; 
                 data[i + 2] = sRgb[2];
             }
-            // DETECCIÓN AZUL/CYAN: Sustituye el azul base del pantalón por el color configurado
             else if (pantsColor.toLowerCase() !== "#0078f8" && r < 40 && g > 100 && b > 200) {
                 data[i]     = pRgb[0]; 
                 data[i + 1] = pRgb[1]; 
@@ -1815,7 +1834,7 @@ function drawGameHUD() {
     ctx.fillText("LIVES:" + player.lives, CANVAS_WIDTH - 20, 50);
 
     ctx.textAlign = 'left';
-    ctx.font = '7px "Press Start 2P"';
+    font = '7px "Press Start 2P"';
     ctx.fillStyle = '#00f3ff';
     ctx.fillText("STAMINA", 20, 50);
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
