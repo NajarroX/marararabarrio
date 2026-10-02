@@ -530,7 +530,7 @@ const ANIM_ROWS = {
     DOWN: 12
 };
 
-/* CARGA DE ILUSTRACIONES DE FONDO */
+/* CARGA DE ILUSTRACIONES DE FONDO CON VERIFICACIÓN */
 const bgFloorImg = new Image();
 bgFloorImg.src = 'assets/bg_floor.png';
 
@@ -730,7 +730,7 @@ const ENEMIES_DB = {
 let selectedCharIndex = 0;
 
 /* ==========================================================================
-   PRESENTACIÓN DE HISTORIA (MODO PRESENTACIÓN / PPT)
+   PRESENTACIÓN DE HISTORIA
    ========================================================================== */
 let currentStorySlide = 1;
 const TOTAL_STORY_SLIDES = 6;
@@ -781,7 +781,7 @@ function launchActualGameplay() {
 
     player = new PlayerEntity(100, 400, charData, customName);
     enemies = []; particles = []; floatingTexts = []; shockwaves = []; powerups = [];
-    score = 0; currentBlock = 1; cameraX = 0; specialEnergy = 0; defeatCount = 0;
+    score = 0; currentBlock = 1; cameraX = 0; targetCameraX = 0; specialEnergy = 0; defeatCount = 0;
 
     showScreen(null);
     gameState = 'GAME';
@@ -802,8 +802,6 @@ let glitchTime = 0;
 
 let specialEnergy = 0; 
 const MAX_SPECIAL_ENERGY = 100;
-
-// Contador global de bajas para frecuencia de Power-ups
 let defeatCount = 0;
 
 let player = null;
@@ -814,7 +812,7 @@ let shockwaves = [];
 let powerups = [];
 
 /* ==========================================================================
-   CLASE DE POWER-UPS CON COLISIÓN, ILUSTRACIÓN Y TIEMPO DE VIDA (10s)
+   CLASE DE POWER-UPS
    ========================================================================== */
 class PowerUpEntity {
     constructor(x, y, typeKey) {
@@ -825,8 +823,6 @@ class PowerUpEntity {
         this.radius = 20;
         this.floatOffset = Math.random() * Math.PI * 2;
         this.collected = false;
-
-        // Temporizador de 10 segundos (60 fps * 10 = 600 frames)
         this.lifetime = 600;
         this.isExpired = false;
 
@@ -851,13 +847,11 @@ class PowerUpEntity {
         this.lifetime--;
         if (this.lifetime <= 0) {
             this.isExpired = true;
-            // Efecto idéntico al de los enemigos caídos
             createExplosion(this.x, this.y - 10, '#ff0055');
         }
     }
 
     draw(ctx) {
-        // Parpadeo rápido en los últimos 3 segundos (180 frames)
         if (this.lifetime < 180 && Math.floor(Date.now() / 80) % 2 === 0) {
             return;
         }
@@ -865,7 +859,6 @@ class PowerUpEntity {
         ctx.save();
         ctx.translate(this.x - cameraX, this.y - this.z);
 
-        // Sombra en el piso
         ctx.fillStyle = 'rgba(0,0,0,0.4)';
         ctx.beginPath();
         ctx.ellipse(0, this.z, 16, 8, 0, 0, Math.PI * 2);
@@ -874,7 +867,6 @@ class PowerUpEntity {
         if (this.image.complete && this.image.naturalWidth !== 0) {
             ctx.drawImage(this.image, -20, -20, 40, 40);
         } else {
-            // Render de respaldo
             ctx.fillStyle = this.type.color;
             ctx.beginPath();
             ctx.arc(0, 0, 16, 0, Math.PI * 2);
@@ -1137,7 +1129,7 @@ class SpriteManager {
 }
 
 /* ==========================================================================
-   CLASES DE ENTIDAD Y HITBOXES PROPORCIONALES
+   CLASES DE ENTIDAD
    ========================================================================== */
 class Entity {
     constructor(x, y, spriteSrc) {
@@ -1192,8 +1184,6 @@ class PlayerEntity extends Entity {
 
         this.isKnockedDown = false;
         this.respawnTimer = 0;
-
-        // Temporizador para Power-up TAMAL
         this.tamalTimer = 0;
     }
 
@@ -1203,7 +1193,7 @@ class PlayerEntity extends Entity {
             this.hp = this.maxHp;
             createFloatingText("FULL ENERGIA! 🌭", this.x, this.y - 70, '#ffee00');
         } else if (typeKey === 'TAMAL') {
-            this.tamalTimer = 600; // 10 segundos a 60 FPS
+            this.tamalTimer = 600;
             this.scaleMultiplier = 1.8;
             this.radius = this.baseRadius * 1.8;
             createFloatingText("GIGANTE TAMAL! 🫔", this.x, this.y - 70, '#ff6600');
@@ -1214,7 +1204,6 @@ class PlayerEntity extends Entity {
     }
 
     update(input) {
-        // Actualizar Power-up TAMAL
         if (this.tamalTimer > 0) {
             this.tamalTimer--;
             if (this.tamalTimer <= 0) {
@@ -1279,7 +1268,6 @@ class PlayerEntity extends Entity {
     }
 
     takeDamage(damage) {
-        // Reducción del 50% de daño al estar en modo TAMAL
         if (this.tamalTimer > 0) {
             damage *= 0.5;
         }
@@ -1313,8 +1301,6 @@ class PlayerEntity extends Entity {
         this.isAttacking = true;
         this.currentAttackType = type;
         const mult = this.scaleMultiplier || 1.0;
-        
-        // AJUSTE: Si está con el power-up TAMAL activo, aumenta un 50% extra el daño otorgado
         const damageBuff = (this.tamalTimer > 0) ? 1.5 : 1.0;
 
         if (type === 'JAB') {
@@ -1418,15 +1404,11 @@ class EnemyEntity extends Entity {
             this.hitbox = null;
             this.despawnTimer = 90;
 
-            // Incrementar contador de bajas
             defeatCount++;
 
-            // AJUSTE: El power-up de vida ATOL requiere un margen de 300 enemigos vencidos
             if (defeatCount >= 300 && defeatCount % 300 === 0) {
                 powerups.push(new PowerUpEntity(this.x, this.y, 'ATOL'));
-            }
-            // AJUSTE: Menor frecuencia para power-ups de energía (SHUCO/TAMAL cada 15 enemigos)
-            else if (defeatCount % 15 === 0 || this.isBoss) {
+            } else if (defeatCount % 15 === 0 || this.isBoss) {
                 const energyKeys = ['SHUCO', 'TAMAL'];
                 const selectedKey = energyKeys[Math.floor(Math.random() * energyKeys.length)];
                 powerups.push(new PowerUpEntity(this.x, this.y, selectedKey));
@@ -1501,6 +1483,7 @@ class EnemyEntity extends Entity {
 }
 
 function resolvePhysicalCollisions() {
+    if (!player) return;
     const allEntities = [player, ...enemies.filter(e => !e.isKnockedDown)];
     for (let i = 0; i < allEntities.length; i++) {
         for (let j = i + 1; j < allEntities.length; j++) {
@@ -1577,7 +1560,7 @@ function applyGlitchEffect() {
    LOOP Y LÓGICA DE JUEGO
    ========================================================================== */
 function updateGame() {
-    if (gameState !== 'GAME') return;
+    if (gameState !== 'GAME' || !player) return;
 
     targetCameraX = player.x - 200;
     if (targetCameraX < cameraX) targetCameraX = cameraX;
@@ -1595,7 +1578,6 @@ function updateGame() {
 
     resolvePhysicalCollisions();
 
-    // Actualización, expiración y recolección de Power-ups
     for (let i = powerups.length - 1; i >= 0; i--) {
         const pu = powerups[i];
         pu.update();
@@ -1710,10 +1692,11 @@ function spawnWave() {
 }
 
 /* ==========================================================================
-   RENDERIZADO DE ESCENARIO Y HUD CON IMÁGENES
+   RENDERIZADO DE ESCENARIO Y HUD
    ========================================================================== */
 function renderGame() {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    if (!player) return;
 
     ctx.save();
     if (cameraShakeTime > 0) {
@@ -1764,7 +1747,6 @@ function renderGame() {
 }
 
 function drawIllustratedStage() {
-    /* Fondo con Paralaje */
     if (bgEnvImg.complete && bgEnvImg.naturalWidth !== 0) {
         const envParallax = (cameraX * 0.3) % CANVAS_WIDTH;
         ctx.drawImage(bgEnvImg, -envParallax, 0, CANVAS_WIDTH, STAGE_TOP_Y);
@@ -1777,7 +1759,6 @@ function drawIllustratedStage() {
         ctx.fillRect(0, 0, CANVAS_WIDTH, STAGE_TOP_Y);
     }
 
-    /* Piso Repetitivo */
     if (bgFloorImg.complete && bgFloorImg.naturalWidth !== 0) {
         const floorScroll = cameraX % CANVAS_WIDTH;
         const floorHeight = CANVAS_HEIGHT - STAGE_TOP_Y;
@@ -1835,7 +1816,6 @@ function drawGameHUD() {
     ctx.fillStyle = '#ff0055';
     ctx.fillText("LIVES:" + player.lives, CANVAS_WIDTH - 20, 50);
 
-    /* Barra de Stamina */
     ctx.textAlign = 'left';
     ctx.font = '7px "Press Start 2P"';
     ctx.fillStyle = '#00f3ff';
@@ -1847,7 +1827,6 @@ function drawGameHUD() {
     ctx.strokeStyle = '#00f3ff';
     ctx.strokeRect(20, 56, 120, 7);
 
-    /* Barra de Especial (L1) */
     ctx.fillStyle = '#ffee00';
     ctx.fillText("SPECIAL", 20, 72);
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -1903,6 +1882,7 @@ function endGame() {
 
 function resetToMenu() {
     gameState = 'INTRO';
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     showScreen('screen-intro');
 }
 
