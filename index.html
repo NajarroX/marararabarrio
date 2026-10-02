@@ -493,8 +493,8 @@
         <br>
         <h3 style="color:var(--neon-yellow); margin-bottom:10px; font-size:0.7rem;">POWER-UPS EN EL BARRIO</h3>
         <p>🌭 <b>SHUCO:</b> Restaura 100% de la energía de vida.</p>
-        <p>🫔 <b>TAMAL:</b> Aumenta tamaño x1.8 y reduce daño recibido a la mitad por 10s.</p>
-        <p>🥣 <b>ATOL:</b> Otorga 1 vida extra.</p>
+        <p>🫔 <b>TAMAL:</b> Aumenta tamaño x1.8, inflige +50% de daño extra y reduce daño recibido a la mitad por 10s.</p>
+        <p>🥣 <b>ATOL:</b> Otorga 1 vida extra (Requiere 300 enemigos vencidos).</p>
         <br>
         <button class="btn btn-pink" style="width:100%; margin:0;" onclick="toggleModal(false)">CERRAR</button>
     </div>
@@ -1313,27 +1313,30 @@ class PlayerEntity extends Entity {
         this.isAttacking = true;
         this.currentAttackType = type;
         const mult = this.scaleMultiplier || 1.0;
+        
+        // AJUSTE: Si está con el power-up TAMAL activo, aumenta un 50% extra el daño otorgado
+        const damageBuff = (this.tamalTimer > 0) ? 1.5 : 1.0;
 
         if (type === 'JAB') {
             SoundEffects.swing();
             this.attackTimer = 12;
-            this.hitbox = { offsetX: 10 * SPRITE_SCALE * mult, w: 60 * SPRITE_SCALE * mult, h: 45 * SPRITE_SCALE * mult, damage: this.power * mult };
+            this.hitbox = { offsetX: 10 * SPRITE_SCALE * mult, w: 60 * SPRITE_SCALE * mult, h: 45 * SPRITE_SCALE * mult, damage: this.power * mult * damageBuff };
         } else if (type === 'HIGH_KICK') {
             SoundEffects.swing();
             this.attackTimer = 16;
-            this.hitbox = { offsetX: 12 * SPRITE_SCALE * mult, w: 70 * SPRITE_SCALE * mult, h: 50 * SPRITE_SCALE * mult, damage: this.power * 1.4 * mult };
+            this.hitbox = { offsetX: 12 * SPRITE_SCALE * mult, w: 70 * SPRITE_SCALE * mult, h: 50 * SPRITE_SCALE * mult, damage: this.power * 1.4 * mult * damageBuff };
         } else if (type === 'FLYING_KICK') {
             SoundEffects.swing();
             this.vz = 7;
             this.attackTimer = 20;
             this.currentAttackType = 'JUMP_KICK';
-            this.hitbox = { offsetX: 15 * SPRITE_SCALE * mult, w: 80 * SPRITE_SCALE * mult, h: 55 * SPRITE_SCALE * mult, damage: this.power * 1.8 * mult };
+            this.hitbox = { offsetX: 15 * SPRITE_SCALE * mult, w: 80 * SPRITE_SCALE * mult, h: 55 * SPRITE_SCALE * mult, damage: this.power * 1.8 * mult * damageBuff };
         } else if (type === 'GRAB') {
             SoundEffects.grabR1();
             this.stamina -= 30;
             this.attackTimer = 22;
             this.currentAttackType = 'GRAB_THROW';
-            this.hitbox = { offsetX: 8 * SPRITE_SCALE * mult, w: 50 * SPRITE_SCALE * mult, h: 50 * SPRITE_SCALE * mult, damage: this.power * 2.5 * mult, isGrab: true };
+            this.hitbox = { offsetX: 8 * SPRITE_SCALE * mult, w: 50 * SPRITE_SCALE * mult, h: 50 * SPRITE_SCALE * mult, damage: this.power * 2.5 * mult * damageBuff, isGrab: true };
         } else if (type === 'SPECIAL_BOMB') {
             SoundEffects.specialL1();
             specialEnergy = 0;
@@ -1354,7 +1357,7 @@ class PlayerEntity extends Entity {
 
             enemies.forEach(e => {
                 if (e.hp > 0) {
-                    e.takeDamage(180 * mult, true);
+                    e.takeDamage(180 * mult * damageBuff, true);
                     createExplosion(e.x, e.y - 20, '#ffee00');
                 }
             });
@@ -1418,10 +1421,14 @@ class EnemyEntity extends Entity {
             // Incrementar contador de bajas
             defeatCount++;
 
-            // APARECE POWER-UP CADA 10 ENEMIGOS DERROTADOS O AL VENCER UN BOSS
-            if (defeatCount % 10 === 0 || this.isBoss) {
-                const keys = ['SHUCO', 'TAMAL', 'ATOL'];
-                const selectedKey = keys[Math.floor(Math.random() * keys.length)];
+            // AJUSTE: El power-up de vida ATOL requiere un margen de 300 enemigos vencidos
+            if (defeatCount >= 300 && defeatCount % 300 === 0) {
+                powerups.push(new PowerUpEntity(this.x, this.y, 'ATOL'));
+            }
+            // AJUSTE: Menor frecuencia para power-ups de energía (SHUCO/TAMAL cada 15 enemigos)
+            else if (defeatCount % 15 === 0 || this.isBoss) {
+                const energyKeys = ['SHUCO', 'TAMAL'];
+                const selectedKey = energyKeys[Math.floor(Math.random() * energyKeys.length)];
                 powerups.push(new PowerUpEntity(this.x, this.y, selectedKey));
             }
 
