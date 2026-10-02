@@ -1004,7 +1004,7 @@ function getInputs() {
 }
 
 /* ==========================================================================
-   RENDERIZADO CON SPRITESHEET Y PALETTE SWAP
+   RENDERIZADO CON SPRITESHEET Y PALETTE SWAP (CHROMA KEY AJUSTADO)
    ========================================================================== */
 const spritePaletteCache = new Map();
 
@@ -1034,11 +1034,6 @@ function getTintedSpriteSheet(image, shirtColor, pantsColor) {
         const sRgb = hexToRgb(shirtColor);
         const pRgb = hexToRgb(pantsColor);
 
-        if (shirtColor.toLowerCase() === "#ffffff" && pantsColor.toLowerCase() === "#0078f8") {
-            spritePaletteCache.set(key, image);
-            return image;
-        }
-
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
             const g = data[i + 1];
@@ -1047,13 +1042,16 @@ function getTintedSpriteSheet(image, shirtColor, pantsColor) {
 
             if (a === 0) continue;
 
-            if (shirtColor.toLowerCase() !== "#ffffff" && r > 240 && g > 240 && b > 240) {
-                data[i] = sRgb[0]; 
+            // DETECCIÓN CHROMA KEY: Busca el color verde fluorescente (#0DFF00 / #00FF00) para la camisa
+            // Esto evita alterar el color blanco de las caras y máscaras.
+            if (r < 30 && g > 230 && b < 30) {
+                data[i]     = sRgb[0]; 
                 data[i + 1] = sRgb[1]; 
                 data[i + 2] = sRgb[2];
             }
+            // DETECCIÓN AZUL/CYAN: Sustituye el azul base del pantalón por el color configurado
             else if (pantsColor.toLowerCase() !== "#0078f8" && r < 40 && g > 100 && b > 200) {
-                data[i] = pRgb[0]; 
+                data[i]     = pRgb[0]; 
                 data[i + 1] = pRgb[1]; 
                 data[i + 2] = pRgb[2];
             }
